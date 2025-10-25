@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Line Manipulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-copy {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-clear {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-copy-output {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #3b82f6;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-copy-output:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .text-areas {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .text-area-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .text-area-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .text-area-header h3 {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .line-count {
+            color: #666;
+            font-size: 12px;
+            background: #f3f4f6;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #10b981;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s;
+            z-index: 1000;
+            font-weight: 600;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .text-areas {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .input-group {
+                width: 100%;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Text Line Manipulator</h1>
+        <p class="subtitle">Mirip fitur Find & Replace di Notepad++ - Hapus atau Copy baris berdasarkan keyword</p>
+
+        <div class="controls">
+            <div class="input-group">
+                <label for="keyword">Keyword (contoh: @hotmail)</label>
+                <input type="text" id="keyword" placeholder="Masukkan kata kunci yang ingin dicari...">
+            </div>
+
+            <div class="button-group">
+                <button class="btn-remove" onclick="removeLines()">🗑️ Remove Lines</button>
+                <button class="btn-copy" onclick="copyLines()">📋 Copy Lines</button>
+                <button class="btn-clear" onclick="clearAll()">🔄 Clear All</button>
+            </div>
+        </div>
+
+        <div class="text-areas">
+            <div class="text-area-container">
+                <div class="text-area-header">
+                    <h3>📝 Input Text</h3>
+                    <span class="line-count" id="inputCount">0 baris</span>
+                </div>
+                <textarea id="inputText" placeholder="Paste text kamu di sini...&#10;&#10;Contoh:&#10;kudakucing12@hotmail.com&#10;192.168.0.1:80@username:password1&#10;192.168.0.1:80@username:password2&#10;&#10;kudakucing17@hotmail.com&#10;192.168.0.1:80@username:password3"></textarea>
+            </div>
+
+            <div class="text-area-container">
+                <div class="text-area-header">
+                    <h3>✅ Output Text</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="line-count" id="outputCount">0 baris</span>
+                        <button class="btn-copy-output" onclick="copyOutputToClipboard()" title="Copy output ke clipboard">📋 Copy</button>
+                    </div>
+                </div>
+                <textarea id="outputText" placeholder="Hasil akan muncul di sini..." readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const keywordInput = document.getElementById('keyword');
+        const inputCount = document.getElementById('inputCount');
+        const outputCount = document.getElementById('outputCount');
+
+        // Update line count
+        function updateCounts() {
+            const inputLines = inputText.value.split('\n').filter(line => line.trim() !== '');
+            const outputLines = outputText.value.split('\n').filter(line => line.trim() !== '');
+            
+            inputCount.textContent = `${inputLines.length} baris`;
+            outputCount.textContent = `${outputLines.length} baris`;
+        }
+
+        inputText.addEventListener('input', updateCounts);
+
+        // Remove lines containing keyword
+        function removeLines() {
+            const keyword = keywordInput.value.trim();
+            
+            if (!keyword) {
+                showNotification('⚠️ Masukkan keyword terlebih dahulu!', '#f59e0b');
+                return;
+            }
+
+            const inputValue = inputText.value;
+            if (!inputValue.trim()) {
+                showNotification('⚠️ Input text kosong!', '#f59e0b');
+                return;
+            }
+
+            const lines = inputValue.split('\n');
+            const filteredLines = lines.filter(line => !line.includes(keyword));
+            
+            outputText.value = filteredLines.join('\n');
+            updateCounts();
+            
+            const removedCount = lines.length - filteredLines.length;
+            showNotification(`✓ Berhasil menghapus ${removedCount} baris dengan keyword "${keyword}"`, '#10b981');
+        }
+
+        // Copy lines containing keyword
+        function copyLines() {
+            const keyword = keywordInput.value.trim();
+            
+            if (!keyword) {
+                showNotification('⚠️ Masukkan keyword terlebih dahulu!', '#f59e0b');
+                return;
+            }
+
+            const inputValue = inputText.value;
+            if (!inputValue.trim()) {
+                showNotification('⚠️ Input text kosong!', '#f59e0b');
+                return;
+            }
+
+            const lines = inputValue.split('\n');
+            const matchedLines = lines.filter(line => line.includes(keyword));
+            
+            if (matchedLines.length === 0) {
+                showNotification(`⚠️ Tidak ada baris dengan keyword "${keyword}"`, '#f59e0b');
+                return;
+            }
+
+            outputText.value = matchedLines.join('\n');
+            updateCounts();
+            
+            showNotification(`✓ Berhasil menyalin ${matchedLines.length} baris dengan keyword "${keyword}"`, '#10b981');
+        }
+
+        // Clear all
+        function clearAll() {
+            inputText.value = '';
+            outputText.value = '';
+            keywordInput.value = '';
+            updateCounts();
+            showNotification('✓ Semua text telah dibersihkan', '#6b7280');
+        }
+
+        // Copy output to clipboard
+        function copyOutputToClipboard() {
+            const output = outputText.value;
+            
+            if (!output.trim()) {
+                showNotification('⚠️ Output kosong, tidak ada yang di-copy!', '#f59e0b');
+                return;
+            }
+
+            outputText.select();
+            document.execCommand('copy');
+            
+            // Deselect after copy
+            window.getSelection().removeAllRanges();
+            
+            showNotification('✓ Output berhasil di-copy ke clipboard!', '#3b82f6');
+        }
+
+        // Show notification
+        function showNotification(message, color = '#10b981') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.background = color;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Allow Enter key to trigger remove
+        keywordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                removeLines();
+            }
+        });
+
+        // Initial count
+        updateCounts();
+    </script>
+</body>
+                    </html>

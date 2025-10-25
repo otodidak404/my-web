@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Decoder Tool</title>
+  <style>
+    :root {
+      --bg-dark: #111827;
+      --bg-darker: #0f172a;
+      --bg-panel: #1f2937;
+      --bg-input: #374151;
+      --text-light: #f3f4f6;
+      --text-dim: #9ca3af;
+      --blue: #3b82f6;
+      --blue-dark: #2563eb;
+      --blue-light: #60a5fa;
+      --green: #10b981;
+      --green-light: #34d399;
+      --yellow: #f59e0b;
+      --purple: #8b5cf6;
+      --red: #ef4444;
+      --border-color: #4b5563;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+    }
+
+    .input-area {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-container {
+      display: flex;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--bg-input);
+      color: var(--text-light);
+      border: 1px solid var(--border-color);
+      border-right: none;
+      border-radius: 0.25rem 0 0 0.25rem;
+      resize: vertical;
+      min-height: 100px;
+      font-family: monospace;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: var(--blue);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--blue-dark);
+    }
+
+    .btn-example {
+      border-radius: 0 0.25rem 0.25rem 0;
+    }
+
+    .error-message {
+      color: var(--red);
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+      padding: 0.5rem 1rem;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .tab-button.active {
+      color: var(--blue-light);
+      border-bottom: 2px solid var(--blue);
+    }
+
+    .tab-button.active.claims {
+      color: var(--green-light);
+      border-bottom: 2px solid var(--green);
+    }
+
+    .panel {
+      background-color: var(--bg-panel);
+      border-radius: 0.25rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel h2.header-title {
+      color: var(--blue-light);
+    }
+
+    .panel h2.payload-title {
+      color: var(--green-light);
+    }
+
+    .panel h2.signature-title {
+      color: var(--purple);
+    }
+
+    .panel-content {
+      background-color: var(--bg-darker);
+      border-radius: 0.25rem;
+      padding: 1rem;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: monospace;
+    }
+
+    .info-item {
+      margin-top: 0.5rem;
+    }
+
+    .label {
+      font-weight: 500;
+    }
+
+    .value.algorithm {
+      color: var(--yellow);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .grid-cols-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .text-red {
+      color: var(--red);
+    }
+
+    .text-green {
+      color: var(--green);
+    }
+
+    .text-small {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+    }
+
+    .claim-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .claim-item:last-child {
+      border-bottom: none;
+    }
+
+    .claim-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .claim-label {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+
+    .claim-type-label {
+      color: var(--yellow);
+    }
+
+    .claim-value-label {
+      color: var(--green);
+    }
+
+    .claim-notes-label {
+      color: var(--purple);
+    }
+
+    .claim-value {
+      word-break: break-all;
+    }
+
+    .claim-notes {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      .grid-cols-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .claim-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-area">
+      <h1>JWT Decoder Tool</h1>
+      <p>Paste a JWT token to decode its contents</p>
+      
+      <div class="input-container">
+        <textarea id="jwt-input" placeholder="Paste JWT here..."></textarea>
+        <button id="example-btn" class="btn-example">Example</button>
+      </div>
+      
+      <div id="error-container" class="error-message hidden"></div>
+    </div>
+
+    <div id="result-container" class="hidden">
+      <div class="tab-bar">
+        <button id="tab-decoded" class="tab-button active">Decoded Token</button>
+        <button id="tab-claims" class="tab-button">Claims</button>
+      </div>
+
+      <div id="decoded-view">
+        <div class="grid grid-cols-2">
+          <div class="panel">
+            <h2 class="header-title">Header</h2>
+            <div class="panel-content">
+              <pre id="header-json"></pre>
+            </div>
+            
+            <div id="alg-container" class="info-item hidden">
+              <span class="label">Algorithm: </span>
+              <span id="alg-value" class="value algorithm"></span>
+            </div>
+            
+            <div id="typ-container" class="info-item hidden">
+              <span class="label">Type: </span>
+              <span id="typ-value" class="value algorithm"></span>
+            </div>
+          </div>
+          
+          <div class="panel">
+            <h2 class="payload-title">Payload</h2>
+            <div class="panel-content">
+              <pre id="payload-json"></pre>
+            </div>
+            
+            <div id="exp-container" class="info-item hidden">
+              <div>
+                <span class="label">Expires at: </span>
+                <span id="exp-value"></span>
+              </div>
+              <div>
+                <span class="label">Status: </span>
+                <span id="exp-status"></span>
+              </div>
+            </div>
+            
+            <div id="iat-container" class="info-item hidden">
+              <span class="label">Issued at: </span>
+              <span id="iat-value"></span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panel">
+          <h2 class="signature-title">Signature</h2>
+          <div class="panel-content">
+            <div id="signature-value" class="text-dim"></div>
+          </div>
+          <p class="text-small">
+            The signature is used to verify that the sender of the JWT is who it says it is and to ensure that the message wasn't changed along the way.
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-2">
+          <div class="panel">
+            <h2 class="header-title">Raw Header</h2>
+            <div class="panel-content">
+              <div id="header-raw"></div>
+            </div>
+          </div>
+          
+          <div class="panel">
+            <h2 class="payload-title">Raw Payload</h2>
+            <div class="panel-content">
+              <div id="payload-raw"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="claims-view" class="hidden">
+        <div class="panel">
+          <h2 class="header-title">Claims</h2>
+          <div id="claims-container">
+            <!-- Claims will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Comprehensive JWT registered claims descriptions from RFC 7519
+    const registeredClaimsInfo = {
+      iss: "The \"iss\" (issuer) claim identifies the principal that issued the JWT. The processing of this claim is generally application specific. The \"iss\" value is a case-sensitive string containing a StringOrURI value. [RFC 7519, Section 4.1.1]",
+      sub: "The \"sub\" (subject) claim identifies the principal that is the subject of the JWT. The claims in a JWT are normally statements about the subject. The subject value MUST either be scoped to be locally unique in the context of the issuer or be globally unique. The processing of this claim is generally application specific. The \"sub\" value is a case-sensitive string containing a StringOrURI value. [RFC 7519, Section 4.1.2]",
+      aud: "The \"aud\" (audience) claim identifies the recipients that the JWT is intended for. Each principal intended to process the JWT MUST identify itself with a value in the audience claim. If the principal processing the claim does not identify itself with a value in the \"aud\" claim when this claim is present, then the JWT MUST be rejected. [RFC 7519, Section 4.1.3]",
+      exp: "The \"exp\" (expiration time) claim identifies the expiration time on or after which the JWT MUST NOT be accepted for processing. Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. [RFC 7519, Section 4.1.4]",
+      nbf: "The \"nbf\" (not before) claim identifies the time before which the JWT MUST NOT be accepted for processing. Implementers MAY provide for some small leeway, usually no more than a few minutes, to account for clock skew. [RFC 7519, Section 4.1.5]",
+      iat: "The \"iat\" (issued at) claim identifies the time at which the JWT was issued. This claim can be used to determine the age of the JWT. [RFC 7519, Section 4.1.6]",
+      jti: "The \"jti\" (JWT ID) claim provides a unique identifier for the JWT. The identifier value MUST be assigned in a manner that ensures that there is a negligible probability that the same value will be accidentally assigned to a different data object; if the application uses multiple issuers, collisions MUST be prevented among values produced by different issuers as well. The \"jti\" claim can be used to prevent the JWT from being replayed. The \"jti\" value is a case-sensitive string. [RFC 7519, Section 4.1.7]"
+    };
+
+    // Example token
+    const exampleToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVubG9vcCIsInN1YiI6ImF1dGgiLCJhdWQiOiJoZXJyeXN1eW9ubzVAZ21haWwuY29tIiwiZXhwIjoxNzU5MzUxOTI1LCJpYXQiOjE3MTY5OTM5MjUsImp0aSI6ImNlNjU5Y2VhLTQ0MmEtNDJjZi05MTU0LTU1MTQ0ZjNhZTMwOSIsInVzZXJuYW1lIjoiaGVycnlzdXlvbm81QGdtYWlsLmNvbSIsInVzZXJfaWQiOiI0OTczNzUifQ.dJsPuGXTuEbP0DEC3LCu6tdwQ54QRh9m3MYZu_1Lxdc";
+
+    // DOM elements
+    const jwtInput = document.getElementById('jwt-input');
+    const exampleBtn = document.getElementById('example-btn');
+    const errorContainer = document.getElementById('error-container');
+    const resultContainer = document.getElementById('result-container');
+    const tabDecoded = document.getElementById('tab-decoded');
+    const tabClaims = document.getElementById('tab-claims');
+    const decodedView = document.getElementById('decoded-view');
+    const claimsView = document.getElementById('claims-view');
+    const headerJson = document.getElementById('header-json');
+    const payloadJson = document.getElementById('payload-json');
+    const signatureValue = document.getElementById('signature-value');
+    const headerRaw = document.getElementById('header-raw');
+    const payloadRaw = document.getElementById('payload-raw');
+    const algContainer = document.getElementById('alg-container');
+    const algValue = document.getElementById('alg-value');
+    const typContainer = document.getElementById('typ-container');
+    const typValue = document.getElementById('typ-value');
+    const expContainer = document.getElementById('exp-container');
+    const expValue = document.getElementById('exp-value');
+    const expStatus = document.getElementById('exp-status');
+    const iatContainer = document.getElementById('iat-container');
+    const iatValue = document.getElementById('iat-value');
+    const claimsContainer = document.getElementById('claims-container');
+
+    // Function to decode base64 URL encoded string
+    function base64UrlDecode(str) {
+      let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      // Add padding if needed
+      while (base64.length % 4) {
+        base64 += '=';
+      }
+      try {
+        return atob(base64);
+      } catch (e) {
+        throw new Error('Invalid token');
+      }
+    }
+
+    // Function to pretty print JSON
+    function prettyPrint(obj) {
+      return JSON.stringify(obj, null, 2);
+    }
+
+    // Format date for claims in long format
+    function formatClaimDate(timestamp) {
+      if (!timestamp) return '';
+      try {
+        const date = new Date(Number(timestamp) * 1000);
+        return date.toString();
+      } catch (e) {
+        return timestamp;
+      }
+    }
+
+    // Check if claim is a registered claim
+    function isRegisteredClaim(claim) {
+      return Object.keys(registeredClaimsInfo).includes(claim);
+    }
+
+    // Get claim type (used for display)
+    function getClaimType(claim) {
+      if (isRegisteredClaim(claim)) {
+        return claim;
+      }
+      return "custom";
+    }
+
+    // Parse JWT token
+    function parseJwt(token) {
+      try {
+        errorContainer.classList.add('hidden');
+        if (!token) {
+          resultContainer.classList.add('hidden');
+          return;
+        }
+
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          throw new Error('Token must have 3 parts');
+        }
+
+        const decodedHeader = base64UrlDecode(parts[0]);
+        const decodedPayload = base64UrlDecode(parts[1]);
+        const signature = parts[2];
+        
+        const header = JSON.parse(decodedHeader);
+        const payload = JSON.parse(decodedPayload);
+        
+        // Update UI with decoded token information
+        headerJson.textContent = prettyPrint(header);
+        payloadJson.textContent = prettyPrint(payload);
+        signatureValue.textContent = signature;
+        headerRaw.textContent = decodedHeader;
+        payloadRaw.textContent = decodedPayload;
+        
+        // Show algorithm if available
+        if (header.alg) {
+          algContainer.classList.remove('hidden');
+          algValue.textContent = header.alg;
+        } else {
+          algContainer.classList.add('hidden');
+        }
+        
+        // Show type if available
+        if (header.typ) {
+          typContainer.classList.remove('hidden');
+          typValue.textContent = header.typ;
+        } else {
+          typContainer.classList.add('hidden');
+        }
+        
+        // Show expiration time if available
+        if (payload.exp) {
+          expContainer.classList.remove('hidden');
+          expValue.textContent = formatClaimDate(payload.exp);
+          
+          const expirationDate = new Date(payload.exp * 1000);
+          const now = new Date();
+          
+          if (expirationDate > now) {
+            expStatus.textContent = 'Valid';
+            expStatus.className = 'value text-green';
+          } else {
+            expStatus.textContent = 'Expired';
+            expStatus.className = 'value text-red';
+          }
+        } else {
+          expContainer.classList.add('hidden');
+        }
+        
+        // Show issued at time if available
+        if (payload.iat) {
+          iatContainer.classList.remove('hidden');
+          iatValue.textContent = formatClaimDate(payload.iat);
+        } else {
+          iatContainer.classList.add('hidden');
+        }
+        
+        // Render claims
+        renderClaims(payload);
+        
+        // Show results
+        resultContainer.classList.remove('hidden');
+        
+        return { header, payload, signature };
+      } catch (e) {
+        errorContainer.textContent = e.message;
+        errorContainer.classList.remove('hidden');
+        resultContainer.classList.add('hidden');
+        return null;
+      }
+    }
+
+    // Render claims view
+    function renderClaims(payload) {
+      if (!payload || Object.keys(payload).length === 0) return;
+      
+      // Clear previous claims
+      claimsContainer.innerHTML = '';
+      
+      // Get all claims and sort: registered claims first, then custom claims alphabetically
+      const allClaims = Object.keys(payload).sort((a, b) => {
+        const aIsRegistered = isRegisteredClaim(a);
+        const bIsRegistered = isRegisteredClaim(b);
+        
+        if (aIsRegistered && !bIsRegistered) return -1;
+        if (!aIsRegistered && bIsRegistered) return 1;
+        return a.localeCompare(b);
+      });
+      
+      // Create and append claim elements
+      allClaims.forEach(claim => {
+        const isTimeRelated = claim === 'exp' || claim === 'iat' || claim === 'nbf';
+        const isRegistered = isRegisteredClaim(claim);
+        
+        const claimItem = document.createElement('div');
+        claimItem.className = 'claim-item';
+        
+        const claimGrid = document.createElement('div');
+        claimGrid.className = 'claim-grid';
+        
+        // Claim Type column
+        const typeCol = document.createElement('div');
+        
+        const typeLabel = document.createElement('div');
+        typeLabel.className = 'claim-label claim-type-label';
+        typeLabel.textContent = 'Claim type';
+        
+        const typeValue = document.createElement('div');
+        typeValue.className = 'claim-value';
+        typeValue.textContent = getClaimType(claim);
+        
+        typeCol.appendChild(typeLabel);
+        typeCol.appendChild(typeValue);
+        
+        // Claim Value column
+        const valueCol = document.createElement('div');
+        
+        const valueLabel = document.createElement('div');
+        valueLabel.className = 'claim-label claim-value-label';
+        valueLabel.textContent = 'Value';
+        
+        const valueContent = document.createElement('div');
+        valueContent.className = 'claim-value';
+        
+        if (isTimeRelated) {
+          valueContent.textContent = formatClaimDate(payload[claim]);
+        } else if (typeof payload[claim] === 'object') {
+          const pre = document.createElement('pre');
+          pre.textContent = JSON.stringify(payload[claim], null, 2);
+          valueContent.appendChild(pre);
+        } else {
+          valueContent.textContent = String(payload[claim]);
+        }
+        
+        valueCol.appendChild(valueLabel);
+        valueCol.appendChild(valueContent);
+        
+        // Claim Notes column
+        const notesCol = document.createElement('div');
+        
+        const notesLabel = document.createElement('div');
+        notesLabel.className = 'claim-label claim-notes-label';
+        notesLabel.textContent = 'Notes';
+        
+        const notesContent = document.createElement('div');
+        notesContent.className = 'claim-notes';
+        
+        if (isRegistered) {
+          notesContent.textContent = registeredClaimsInfo[claim];
+        } else {
+          notesContent.textContent = "This is a custom claim. Custom claims are used to share application-specific information between parties that agree on using them.";
+        }
+        
+        notesCol.appendChild(notesLabel);
+        notesCol.appendChild(notesContent);
+        
+        // Add expiration status for exp claim
+        if (claim === 'exp') {
+          const statusDiv = document.createElement('div');
+          statusDiv.className = 'info-item';
+          statusDiv.style.marginTop = '0.5rem';
+          
+          const statusLabel = document.createElement('span');
+          statusLabel.className = 'label';
+          statusLabel.textContent = 'Status: ';
+          
+          const statusValue = document.createElement('span');
+          
+          const expirationDate = new Date(payload.exp * 1000);
+          const now = new Date();
+          
+          if (expirationDate > now) {
+            statusValue.textContent = 'Valid';
+            statusValue.className = 'text-green';
+          } else {
+            statusValue.textContent = 'Expired';
+            statusValue.className = 'text-red';
+          }
+          
+          statusDiv.appendChild(statusLabel);
+          statusDiv.appendChild(statusValue);
+          notesCol.appendChild(statusDiv);
+        }
+        
+        // Append columns to grid
+        claimGrid.appendChild(typeCol);
+        claimGrid.appendChild(valueCol);
+        claimGrid.appendChild(notesCol);
+        
+        // Append grid to item
+        claimItem.appendChild(claimGrid);
+        
+        // Append item to container
+        claimsContainer.appendChild(claimItem);
+      });
+    }
+
+    // Event listeners
+    jwtInput.addEventListener('input', () => {
+      parseJwt(jwtInput.value);
+    });
+
+    exampleBtn.addEventListener('click', () => {
+      jwtInput.value = exampleToken;
+      parseJwt(exampleToken);
+    });
+
+    tabDecoded.addEventListener('click', () => {
+      tabDecoded.classList.add('active');
+      tabClaims.classList.remove('active');
+      tabClaims.classList.remove('claims');
+      decodedView.classList.remove('hidden');
+      claimsView.classList.add('hidden');
+    });
+
+    tabClaims.addEventListener('click', () => {
+      tabDecoded.classList.remove('active');
+      tabClaims.classList.add('active');
+      tabClaims.classList.add('claims');
+      decodedView.classList.add('hidden');
+      claimsView.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>

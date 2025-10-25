@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengekstrak Email dan Password Universal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .tab-button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #ecf0f1;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            font-weight: 500;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 0 4px 4px 4px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #clearBtn {
+            background-color: #e74c3c;
+        }
+        #clearBtn:hover {
+            background-color: #c0392b;
+        }
+        #copyBtn {
+            background-color: #2ecc71;
+        }
+        #copyBtn:hover {
+            background-color: #27ae60;
+        }
+        #result {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            white-space: pre-line;
+        }
+        .options-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .option-label {
+            flex: 0 0 180px;
+            font-weight: 500;
+        }
+        .option-input {
+            flex: 1;
+        }
+        .count {
+            text-align: right;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .copied {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            display: none;
+            animation: fadeIn 0.3s, fadeOut 0.3s 1.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .info-box {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pengekstrak Email dan Password Universal</h1>
+        
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="simple">Mode Sederhana</button>
+                <button class="tab-button" data-tab="advanced">Mode Lanjutan</button>
+                <button class="tab-button" data-tab="about">Bantuan</button>
+            </div>
+            
+            <div class="tab-content active" id="simple-tab">
+                <div class="info-box">
+                    <h3>Mode Sederhana</h3>
+                    <p>Mendeteksi email dan password secara otomatis dalam berbagai format, berusaha mengekstrak kombinasi email dan password dari teks.</p>
+                </div>
+                
+                <textarea id="simpleInput" placeholder="Tempel teks yang berisi email dan password di sini dengan format apa saja...
+Contoh:
+LIVE| Checked On : 20-02-2025 | user@domain.com | password | [ Acc : Email ] ./Otodidak Revolution
+user123@gmail.com:pass123
+email=user@example.com password=myP@ss123
+"></textarea>
+                
+                <div class="button-container">
+                    <button id="simpleExtractBtn">Ekstrak</button>
+                    <button id="simpleClearBtn" class="clear-btn">Bersihkan</button>
+                    <button id="simpleCopyBtn" class="copy-btn">Salin Hasil</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="advanced-tab">
+                <div class="info-box">
+                    <h3>Mode Lanjutan</h3>
+                    <p>Konfigurasikan sendiri pola pencarian dan format output sesuai kebutuhan Anda.</p>
+                </div>
+                
+                <div class="options-container">
+                    <div class="option-row">
+                        <div class="option-label">Pemisah Input:</div>
+                        <div class="option-input">
+                            <input type="text" id="separatorInput" value="|" style="width: 100px;">
+                            <span style="margin-left: 10px; color: #666;">Pemisah antar kolom dalam teks input</span>
+                        </div>
+                    </div>
+                    
+                    <div class="option-row">
+                        <div class="option-label">Posisi Email:</div>
+                        <div class="option-input">
+                            <input type="number" id="emailPosition" min="1" value="2" style="width: 80px;">
+                            <span style="margin-left: 10px; color: #666;">Posisi kolom email setelah pemisahan (1, 2, 3, dst)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="option-row">
+                        <div class="option-label">Posisi Password:</div>
+                        <div class="option-input">
+                            <input type="number" id="passwordPosition" min="1" value="3" style="width: 80px;">
+                            <span style="margin-left: 10px; color: #666;">Posisi kolom password setelah pemisahan (1, 2, 3, dst)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="option-row">
+                        <div class="option-label">Format Output:</div>
+                        <div class="option-input">
+                            <select id="outputFormat" style="width: 180px;">
+                                <option value="email_pass">email | password</option>
+                                <option value="email_colon_pass">email:password</option>
+                                <option value="email_space_pass">email password</option>
+                                <option value="custom">Kustom</option>
+                            </select>
+                            <div id="customFormatContainer" style="margin-top: 10px; display: none;">
+                                <input type="text" id="customFormat" value="{email} | {password}" style="width: 250px;">
+                                <div style="font-size: 12px; color: #666;">Gunakan {email} dan {password} sebagai placeholder</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <textarea id="advancedInput" placeholder="Tempel teks dengan format yang sesuai pengaturan di atas...
+Contoh (dengan pengaturan default):
+LIVE| Checked On : 20-02-2025 | user@domain.com | password | [ Acc : Email ] ./Otodidak Revolution"></textarea>
+                
+                <div class="button-container">
+                    <button id="advancedExtractBtn">Ekstrak</button>
+                    <button id="advancedClearBtn" class="clear-btn">Bersihkan</button>
+                    <button id="advancedCopyBtn" class="copy-btn">Salin Hasil</button>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="about-tab">
+                <h3>Tentang Alat Ini</h3>
+                <p>Alat pengekstrak email dan password universal ini dirancang untuk membantu Anda mengekstrak kombinasi email dan password dari berbagai format teks.</p>
+                
+                <h4>Mode Sederhana</h4>
+                <p>Mode ini mencoba mendeteksi email dan password secara otomatis menggunakan berbagai pola umum yang biasa digunakan:</p>
+                <ul>
+                    <li>Format dengan pemisah "|": <code>... | email@domain.com | password | ...</code></li>
+                    <li>Format dengan titik dua: <code>email@domain.com:password</code></li>
+                    <li>Format dengan spasi: <code>email@domain.com password</code></li>
+                    <li>Format dengan label: <code>email=user@example.com password=myP@ss123</code></li>
+                </ul>
+                
+                <h4>Mode Lanjutan</h4>
+                <p>Mode ini memungkinkan Anda mengonfigurasi pengekstrak sesuai format teks Anda:</p>
+                <ul>
+                    <li>Tentukan pemisah yang digunakan dalam teks ("|", ":", dll.)</li>
+                    <li>Tentukan posisi kolom email dan password</li>
+                    <li>Kustomisasi format output sesuai kebutuhan</li>
+                </ul>
+                
+                <h4>Tips Penggunaan</h4>
+                <ul>
+                    <li>Jika mode sederhana tidak berhasil mengekstrak data dengan benar, coba gunakan mode lanjutan.</li>
+                    <li>Pastikan teks input Anda konsisten dalam penggunaan pemisah.</li>
+                    <li>Untuk format yang sangat khusus, gunakan mode lanjutan dan sesuaikan pengaturannya.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="count">Jumlah hasil: <span id="resultCount">0</span></div>
+        <div id="result"></div>
+    </div>
+
+    <div class="copied" id="copiedNotif">Disalin ke clipboard!</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    button.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Custom format toggle
+            const outputFormat = document.getElementById('outputFormat');
+            const customFormatContainer = document.getElementById('customFormatContainer');
+            
+            outputFormat.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customFormatContainer.style.display = 'block';
+                } else {
+                    customFormatContainer.style.display = 'none';
+                }
+            });
+            
+            // DOM Elements
+            const simpleInput = document.getElementById('simpleInput');
+            const advancedInput = document.getElementById('advancedInput');
+            const result = document.getElementById('result');
+            const resultCount = document.getElementById('resultCount');
+            const copiedNotif = document.getElementById('copiedNotif');
+            
+            // Simple Mode
+            const simpleExtractBtn = document.getElementById('simpleExtractBtn');
+            const simpleClearBtn = document.getElementById('simpleClearBtn');
+            const simpleCopyBtn = document.getElementById('simpleCopyBtn');
+            
+            simpleExtractBtn.addEventListener('click', function() {
+                const text = simpleInput.value;
+                if (!text.trim()) {
+                    result.textContent = "Silakan masukkan teks terlebih dahulu.";
+                    resultCount.textContent = "0";
+                    return;
+                }
+                
+                const lines = text.split('\n');
+                let extracted = [];
+                
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    let email = '', password = '';
+                    
+                    // Coba berbagai pola untuk mendeteksi email dan password
+                    
+                    // Pola 1: Menggunakan pemisah "|" - seperti "LIVE| ... | email | password | ..."
+                    if (line.includes('|')) {
+                        const parts = line.split('|').map(part => part.trim());
+                        
+                        // Cari bagian yang berisi "@" sebagai email
+                        const emailIndex = parts.findIndex(part => part.includes('@'));
+                        if (emailIndex !== -1 && emailIndex < parts.length - 1) {
+                            email = parts[emailIndex];
+                            password = parts[emailIndex + 1];
+                        }
+                    }
+                    
+                    // Pola 2: Format "email:password"
+                    if (!email && line.includes(':')) {
+                        const parts = line.split(':');
+                        if (parts.length >= 2 && parts[0].includes('@')) {
+                            email = parts[0].trim();
+                            password = parts[1].trim();
+                        }
+                    }
+                    
+                    // Pola 3: Email diikuti spasi dan password
+                    if (!email) {
+                        const emailMatch = line.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                        if (emailMatch) {
+                            email = emailMatch[1];
+                            const emailEndIndex = line.indexOf(email) + email.length;
+                            if (emailEndIndex < line.length) {
+                                // Ambil teks setelah email sebagai password, tetapi hapus karakter non-alfanumerik di awal
+                                password = line.substring(emailEndIndex).replace(/^[^a-zA-Z0-9]+/, '').trim();
+                                
+                                // Jika password masih mengandung bagian lain (seperti " | [ Acc : Email ]"), potong di pemisah pertama
+                                const separators = ['|', '[', ']', '(', ')', '{', '}'];
+                                for (const separator of separators) {
+                                    if (password.includes(separator)) {
+                                        password = password.split(separator)[0].trim();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Pola 4: Format "email=value password=value"
+                    if (!email) {
+                        const emailLabelMatch = line.match(/email[=:]\s*([^\s]+)/i);
+                        const passwordLabelMatch = line.match(/password[=:]\s*([^\s]+)/i);
+                        
+                        if (emailLabelMatch) email = emailLabelMatch[1];
+                        if (passwordLabelMatch) password = passwordLabelMatch[1];
+                    }
+                    
+                    if (email && password) {
+                        // Bersihkan hasil dari karakter yang tidak diinginkan
+                        email = email.replace(/[<>()[\]\\.,;:'"]/g, '').trim();
+                        password = password.replace(/[<>()[\]\\.,;:'"]/g, '').trim();
+                        
+                        if (email.includes('@')) {
+                            extracted.push(`${email} | ${password}`);
+                        }
+                    }
+                });
+                
+                if (extracted.length === 0) {
+                    result.textContent = "Tidak dapat mendeteksi email dan password. Coba gunakan Mode Lanjutan untuk konfigurasi manual.";
+                } else {
+                    result.textContent = extracted.join('\n');
+                }
+                
+                resultCount.textContent = extracted.length;
+            });
+            
+            // Advanced Mode
+            const advancedExtractBtn = document.getElementById('advancedExtractBtn');
+            const advancedClearBtn = document.getElementById('advancedClearBtn');
+            const advancedCopyBtn = document.getElementById('advancedCopyBtn');
+            
+            advancedExtractBtn.addEventListener('click', function() {
+                const text = advancedInput.value;
+                if (!text.trim()) {
+                    result.textContent = "Silakan masukkan teks terlebih dahulu.";
+                    resultCount.textContent = "0";
+                    return;
+                }
+                
+                const separator = document.getElementById('separatorInput').value;
+                const emailPos = parseInt(document.getElementById('emailPosition').value) - 1;
+                const passwordPos = parseInt(document.getElementById('passwordPosition').value) - 1;
+                const format = document.getElementById('outputFormat').value;
+                const customFormat = document.getElementById('customFormat').value;
+                
+                const lines = text.split('\n');
+                let extracted = [];
+                
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    const parts = line.split(separator).map(part => part.trim());
+                    
+                    if (parts.length > Math.max(emailPos, passwordPos)) {
+                        const email = parts[emailPos];
+                        const password = parts[passwordPos];
+                        
+                        if (email && password) {
+                            let formattedOutput = '';
+                            
+                            switch (format) {
+                                case 'email_pass':
+                                    formattedOutput = `${email} | ${password}`;
+                                    break;
+                                case 'email_colon_pass':
+                                    formattedOutput = `${email}:${password}`;
+                                    break;
+                                case 'email_space_pass':
+                                    formattedOutput = `${email} ${password}`;
+                                    break;
+                                case 'custom':
+                                    formattedOutput = customFormat
+                                        .replace('{email}', email)
+                                        .replace('{password}', password);
+                                    break;
+                            }
+                            
+                            extracted.push(formattedOutput);
+                        }
+                    }
+                });
+                
+                if (extracted.length === 0) {
+                    result.textContent = "Tidak ditemukan format yang sesuai. Periksa kembali pengaturan Anda.";
+                } else {
+                    result.textContent = extracted.join('\n');
+                }
+                
+                resultCount.textContent = extracted.length;
+            });
+            
+            // Clear buttons
+            const clearButtons = document.querySelectorAll('.clear-btn');
+            clearButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tabId = this.id.replace('ClearBtn', '');
+                    document.getElementById(`${tabId}Input`).value = '';
+                    result.textContent = '';
+                    resultCount.textContent = '0';
+                });
+            });
+            
+            // Copy buttons
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            copyButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!result.textContent.trim()) {
+                        return;
+                    }
+                    
+                    navigator.clipboard.writeText(result.textContent)
+                        .then(() => {
+                            copiedNotif.style.display = 'block';
+                            setTimeout(() => {
+                                copiedNotif.style.display = 'none';
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            alert('Gagal menyalin teks: ' + err);
+                        });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

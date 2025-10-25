@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern User Agent Generator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+    	
+    * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+h3 {
+    color: #444;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+.os-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.os-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.os-btn i {
+    font-size: 1.2em;
+}
+
+.os-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.os-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.os-options {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.version-select, .device-select {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555;
+    font-weight: 500;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    color: #333;
+    background-color: white;
+}
+
+.generation-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+input[type="number"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 120px;
+    font-size: 1em;
+}
+
+#generateBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1em;
+}
+
+#generateBtn:hover {
+    background-color: #218838;
+}
+
+#generateBtn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+}
+
+.result {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.user-agent-item {
+    background-color: white;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.buttons-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.buttons-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+#copyBtn {
+    background-color: #17a2b8;
+    color: white;
+}
+
+#copyBtn:hover {
+    background-color: #138496;
+}
+
+#downloadBtn {
+    background-color: #6c757d;
+    color: white;
+}
+
+#downloadBtn:hover {
+    background-color: #5a6268;
+}
+
+#clearBtn {
+    background-color: #dc3545;
+    color: white;
+}
+
+#clearBtn:hover {
+    background-color: #c82333;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .os-buttons {
+        flex-direction: column;
+    }
+
+    .os-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .generation-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    input[type="number"] {
+        width: 100%;
+    }
+
+    .buttons-container {
+        flex-direction: column;
+    }
+
+    .buttons-container button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Modern User Agent Generator</h1>
+
+        <div class="form-group">
+            <div class="os-selection">
+                <h3>Operating System</h3>
+                <div class="os-buttons">
+                    <button class="os-btn" data-os="windows">
+                        <i class="fab fa-windows"></i> Windows
+                    </button>
+                    <button class="os-btn" data-os="linux">
+                        <i class="fab fa-linux"></i> Linux
+                    </button>
+                    <button class="os-btn" data-os="macos">
+                        <i class="fab fa-apple"></i> MacOS
+                    </button>
+                    <button class="os-btn" data-os="android">
+                        <i class="fab fa-android"></i> Android
+                    </button>
+                    <button class="os-btn" data-os="ios">
+                        <i class="fab fa-apple"></i> iOS
+                    </button>
+                </div>
+            </div>
+
+            <div id="androidOptions" class="os-options" style="display: none;">
+                <div class="version-select">
+                    <label>Android Version</label>
+                    <select id="androidVersion">
+                        <option value="14.0">Android 14.0</option>
+                        <option value="13.0">Android 13.0</option>
+                        <option value="12.0">Android 12.0</option>
+                        <option value="11.0">Android 11.0</option>
+                        <option value="10.0">Android 10.0</option>
+                        <option value="9.0">Android 9.0</option>
+                        <option value="8.1">Android 8.1</option>
+                        <option value="8.0">Android 8.0</option>
+                        <option value="7.1">Android 7.1</option>
+                        <option value="7.0">Android 7.0</option>
+                    </select>
+                </div>
+                <div class="device-select">
+                    <label>Device Model</label>
+                    <select id="androidDevice">
+                        <optgroup label="OPPO">
+                            <option>OPPO Reno11 Pro</option>
+                            <option>OPPO Reno11</option>
+                            <option>OPPO Find N3 Flip</option>
+                            <option>OPPO A98</option>
+                            <option>OPPO Find X7 Ultra</option>
+                            <option>OPPO Find X7 Pro</option>
+                            <option>OPPO Find X7</option>
+                        </optgroup>
+                        <optgroup label="Realme">
+                            <option>Realme GT5 Pro</option>
+                            <option>Realme 11 Pro+</option>
+                            <option>Realme 11 Pro</option>
+                            <option>Realme GT Neo 5 SE</option>
+                            <option>Realme Narzo 60x</option>
+                            <option>Realme GT Neo 5</option>
+                            <option>Realme C67</option>
+                        </optgroup>
+                        <optgroup label="ASUS">
+                            <option>ASUS ROG Phone 8 Pro</option>
+                            <option>ASUS ROG Phone 8</option>
+                            <option>ASUS ROG Phone 7 Ultimate</option>
+                            <option>ASUS ROG Phone 7</option>
+                            <option>ASUS Zenfone 10</option>
+                            <option>ASUS Zenfone 9</option>
+                            <option>ASUS ROG Phone 6D</option>
+                        </optgroup>
+                        <optgroup label="Google">
+                            <option>Google Pixel 8 Pro</option>
+                            <option>Google Pixel 8</option>
+                            <option>Google Pixel 7 Pro</option>
+                            <option>Google Pixel 7</option>
+                            <option>Google Pixel 6 Pro</option>
+                            <option>Google Pixel 6</option>
+                        </optgroup>
+                        <optgroup label="Xiaomi">
+                            <option>Xiaomi 13 Pro</option>
+                            <option>Xiaomi 13</option>
+                            <option>Xiaomi Redmi Note 12 Pro</option>
+                            <option>Xiaomi Redmi Note 12</option>
+                            <option>POCO F5 Pro</option>
+                            <option>POCO F5</option>
+                        </optgroup>
+                        <optgroup label="OnePlus">
+                            <option>OnePlus 11</option>
+                            <option>OnePlus 10 Pro</option>
+                            <option>OnePlus 10T</option>
+                            <option>OnePlus Nord 3</option>
+                            <option>OnePlus Nord CE 3</option>
+                        </optgroup>
+                        <optgroup label="Vivo">
+                            <option>Vivo X90 Pro</option>
+                            <option>Vivo X90</option>
+                            <option>Vivo V29 Pro</option>
+                            <option>Vivo V29</option>
+                            <option>Vivo Y35</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div id="iosOptions" class="os-options" style="display: none;">
+                <div class="version-select">
+                    <label>iOS Version</label>
+                    <select id="iosVersion">
+                        <option>iOS 18.0 RC</option>
+                        <option>iOS 17.4.1</option>
+                        <option>iOS 17.4</option>
+                        <option>iOS 17.3.1</option>
+                        <option>iOS 17.3</option>
+                        <option>iOS 17.2.1</option>
+                        <option>iOS 17.2</option>
+                        <option>iOS 17.1.2</option>
+                        <option>iOS 17.1.1</option>
+                        <option>iOS 17.1</option>
+                        <option>iOS 17.0.3</option>
+                        <option>iOS 17.0.2</option>
+                        <option>iOS 17.0.1</option>
+                        <option>iOS 17.0</option>
+                        <option>iOS 16.7.5</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="browser-options">
+                <div class="version-select">
+                    <label>Browser</label>
+                    <select id="browserType">
+                        <option value="chrome">Chrome</option>
+                        <option value="firefox">Firefox</option>
+                        <option value="safari">Safari</option>
+                        <option value="edge">Edge</option>
+                        <option value="opera">Opera</option>
+                        <option value="brave">Brave</option>
+                        <option value="yandex">Yandex</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="generation-controls">
+            <label>Number of User Agents (1-1000)</label>
+            <input type="number" id="generateCount" min="1" max="1000" value="1">
+            <button id="generateBtn">
+                <i class="fas fa-random"></i> Generate Random
+            </button>
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                Generating... <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+
+        <div class="result">
+            <h3>Generated User Agents</h3>
+            <div id="userAgentResults"></div>
+            
+            <div class="buttons-container">
+                <button id="copyBtn">
+                    <i class="far fa-copy"></i> Copy All
+                </button>
+                <button id="downloadBtn">
+                    <i class="fas fa-download"></i> Download as TXT
+                </button>
+                <button id="clearBtn">
+                    <i class="fas fa-trash-alt"></i> Clear Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+
+// Constants and Data Storage
+const browsers = {
+    Chrome: ['122.0.6261.111', '122.0.6261.94', '122.0.6261.69', '121.0.6167.184'],
+    Firefox: ['124.0', '123.0.1', '123.0', '122.0.1'],
+    Safari: ['17.3.1', '17.3', '17.2.1', '17.2'],
+    Edge: ['122.0.2365.92', '122.0.2365.80', '122.0.2365.66', '121.0.2277.128'],
+    Opera: ['107.0.5045.36', '107.0.5045.21', '106.0.4998.70', '106.0.4998.52'],
+    Brave: ['123.0.6312.58', '123.0.6312.46', '123.0.6312.33', '122.0.6261.111'],
+    Yandex: ['24.3.0', '24.2.0', '24.1.0', '24.0.0']
+};
+
+const iosBrowsers = {
+    Chrome: ['122.0.6261.111', '122.0.6261.94', '122.0.6261.69'],
+    Firefox: ['124.0', '123.0.1', '123.0'],
+    Safari: ['17.3.1', '17.3', '17.2.1'],
+    Edge: ['122.0.2365.92', '122.0.2365.80', '122.0.2365.66'],
+    Opera: ['107.0.5045.36', '107.0.5045.21']
+};
+
+const androidVersions = ['14.0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.1', '8.0', '7.1', '7.0'];
+const iosVersions = [
+    '17.4.1', '17.4', '17.3.1', '17.3', '17.2.1', '17.2', 
+    '17.1.2', '17.1.1', '17.1', '17.0.3', '17.0.2', '17.0.1', 
+    '16.7.5', '16.7.4', '16.7.3', '16.7.2', '16.7.1'
+];
+
+// DOM Elements
+const osButtons = document.querySelectorAll('.os-btn');
+const generateBtn = document.getElementById('generateBtn');
+const countInput = document.querySelector('input[type="number"]');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const userAgentResults = document.getElementById('userAgentResults');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const clearBtn = document.getElementById('clearBtn');
+const toast = document.getElementById('toast');
+
+// Hide unnecessary elements
+document.querySelectorAll('.os-options, .browser-options').forEach(el => el.style.display = 'none');
+
+let selectedOS = '';
+const generatedUserAgents = new Set();
+
+// Event Listeners
+osButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        osButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        selectedOS = button.textContent.trim();
+    });
+});
+
+generateBtn.addEventListener('click', generateUserAgents);
+copyBtn.addEventListener('click', copyToClipboard);
+downloadBtn.addEventListener('click', downloadAsTxt);
+clearBtn.addEventListener('click', clearResults);
+
+// Helper Functions
+function getRandomItem(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+// User Agent Generator Functions
+function generateAndroidUserAgent() {
+    const androidVersion = getRandomItem(androidVersions);
+    const browser = getRandomItem(Object.keys(browsers));
+    const browserVersion = getRandomItem(browsers[browser]);
+    
+    return `Mozilla/5.0 (Linux; Android ${androidVersion}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browserVersion} Mobile Safari/537.36${browser === 'Chrome' ? '' : ' ' + browser}/${browserVersion}`;
+}
+
+function generateIOSUserAgent() {
+    const version = getRandomItem(iosVersions);
+    const browser = getRandomItem(Object.keys(iosBrowsers));
+    const browserVersion = getRandomItem(iosBrowsers[browser]);
+    const versionFormatted = version.split('.').map(n => n.padStart(2, '0')).join('_');
+    
+    if (browser === 'Safari') {
+        return `Mozilla/5.0 (iPhone; CPU iPhone OS ${versionFormatted} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/${version} Mobile/15E148 Safari/604.1`;
+    }
+    
+    return `Mozilla/5.0 (iPhone; CPU iPhone OS ${versionFormatted} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/${browserVersion} Mobile/15E148 Safari/604.1${browser === 'Chrome' ? '' : ' ' + browser}/${browserVersion}`;
+}
+
+function generateWindowsUserAgent() {
+    const browser = getRandomItem(Object.keys(browsers));
+    const browserVersion = getRandomItem(browsers[browser]);
+    
+    return `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browserVersion} Safari/537.36${browser === 'Chrome' ? '' : ' ' + browser}/${browserVersion}`;
+}
+
+function generateLinuxUserAgent() {
+    const browser = getRandomItem(Object.keys(browsers));
+    const browserVersion = getRandomItem(browsers[browser]);
+    
+    return `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browserVersion} Safari/537.36${browser === 'Chrome' ? '' : ' ' + browser}/${browserVersion}`;
+}
+
+function generateMacOSUserAgent() {
+    const browser = getRandomItem(Object.keys(browsers));
+    const browserVersion = getRandomItem(browsers[browser]);
+    
+    return `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${browserVersion} Safari/537.36${browser === 'Chrome' ? '' : ' ' + browser}/${browserVersion}`;
+}
+
+// Main Generation Function
+async function generateUserAgents() {
+    if (!selectedOS) {
+        showToast('Please select an operating system');
+        return;
+    }
+
+    const count = parseInt(countInput.value);
+    if (isNaN(count) || count < 1 || count > 1000) {
+        showToast('Please enter a valid number between 1 and 1000');
+        return;
+    }
+
+    generateBtn.disabled = true;
+    loadingIndicator.style.display = 'block';
+    userAgentResults.innerHTML = '';
+    generatedUserAgents.clear();
+
+    const generatorFunctions = {
+        'Android': generateAndroidUserAgent,
+        'iOS': generateIOSUserAgent,
+        'Windows': generateWindowsUserAgent,
+        'Linux': generateLinuxUserAgent,
+        'MacOS': generateMacOSUserAgent
+    };
+
+    const generator = generatorFunctions[selectedOS];
+    let attempts = 0;
+    const maxAttempts = count * 2;
+
+    while (generatedUserAgents.size < count && attempts < maxAttempts) {
+        const userAgent = generator();
+        if (!generatedUserAgents.has(userAgent)) {
+            generatedUserAgents.add(userAgent);
+            
+            // Add small delay every 100 generations to prevent UI freeze
+            if (generatedUserAgents.size % 100 === 0) {
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+        attempts++;
+    }
+
+    displayResults();
+    generateBtn.disabled = false;
+    loadingIndicator.style.display = 'none';
+
+    if (generatedUserAgents.size < count) {
+        showToast('Warning: Some duplicates were detected and removed');
+    }
+}
+
+// Display and UI Functions
+function displayResults() {
+    generatedUserAgents.forEach(userAgent => {
+        const div = document.createElement('div');
+        div.className = 'user-agent-item';
+        div.textContent = userAgent;
+        userAgentResults.appendChild(div);
+    });
+}
+
+async function copyToClipboard() {
+    if (generatedUserAgents.size === 0) {
+        showToast('No user agents to copy');
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(Array.from(generatedUserAgents).join('\n'));
+        showToast('Copied to clipboard!');
+    } catch (err) {
+        showToast('Failed to copy to clipboard');
+    }
+}
+
+function downloadAsTxt() {
+    if (generatedUserAgents.size === 0) {
+        showToast('No user agents to download');
+        return;
+    }
+
+    const blob = new Blob([Array.from(generatedUserAgents).join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'user-agents.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Download started!');
+}
+
+function clearResults() {
+    userAgentResults.innerHTML = '';
+    generatedUserAgents.clear();
+    showToast('Results cleared');
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+
+</script>
+</body>
+</html>

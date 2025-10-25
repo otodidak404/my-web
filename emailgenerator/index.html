@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MixEmail</title>
+  <style>
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background-color: #000;
+      color: #0f0;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #000;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 255, 0, 0.1);
+      border: 2px solid #0f0;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    label {
+      margin-bottom: 0.5rem;
+      color: #0f0;
+    }
+
+    input[type="email"], input[type="number"], select {
+      width: 100%;
+      padding: 0.5rem;
+      background-color: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 4px;
+    }
+
+    .error-message {
+      color: #ff0000;
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background-color: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0f0;
+      color: #000;
+    }
+
+    .results {
+      background-color: #000;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 4px;
+      border: 1px solid #0f0;
+    }
+
+    .results-email {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #0f0;
+      padding: 0.5rem;
+      transition: background-color 0.3s;
+    }
+
+    .results-email:hover {
+      background-color: #0f0;
+      color: #000;
+    }
+
+    .results-email span {
+      margin-right: 1rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 5px;
+      background-color: #333;
+      margin-bottom: 1rem;
+      border-radius: 4px;
+    }
+
+    .progress-bar-inner {
+      width: 0%;
+      height: 100%;
+      background-color: #0f0;
+      transition: width 0.3s ease;
+      border-radius: 4px;
+    }
+
+    .visually-hidden {
+      display: none;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>MixEmail</h1>
+    <p id="description">Hasilkan banyak email dengan cepat dan mudah.</p>
+
+    <form id="form">
+      <label for="email">Email:</label>
+      <input type="email" id="email" required placeholder="emailuser@domain.com">
+      <div id="email-error" class="error-message visually-hidden">Email tidak valid atau terlalu pendek.</div>
+
+      <label for="count">Jumlah email yang akan dihasilkan:</label>
+      <input type="number" id="count" min="1" max="1000" required>
+      <div id="count-error" class="error-message visually-hidden">Jumlah email harus antara 1 dan 1000.</div>
+
+      <label for="format">Format email:</label>
+      <select id="format">
+        <option value="EmAiL@domain.com">EmAiL@domain.com (menambahkan 3 huruf besar)</option>
+        <option value="email.us.er@domain.com">email.us.er@domain.com (menambahkan 2 titik)</option>
+        <option value="em.ail.us.er@domain.com">em.ail.us.er@domain.com (menambahkan 3 titik)</option>
+        <option value="email+random@domain.com">email+random@domain.com (menambahkan random suffix)</option>
+        <option value="eMa.iL.uSer@domain.com">eMa.iL.uSer@domain.com (2 titik dan 3 huruf besar)</option>
+        <option value="eM.a.iL.uSer@domain.com">eM.a.iL.uSer@domain.com (3 titik dan 3 huruf besar)</option>
+        <option value="eMa.il.uSer+random@domain.com">eMa.il.uSer+random@domain.com (2 titik, 3 huruf besar, dan random suffix)</option>
+        <option value="eMa.il.uS.er+random@domain.com">eMa.il.uS.er+random@domain.com (3 titik, 3 huruf besar, dan random suffix)</option>
+      </select>
+
+      <button type="submit">Generate</button>
+      <button type="button" id="reload" class="visually-hidden">Proses Ulang</button>
+    </form>
+
+    <div class="progress-bar visually-hidden" aria-live="polite">
+      <div class="progress-bar-inner"></div>
+    </div>
+
+    <div class="results visually-hidden" aria-live="polite">
+      <h2>Hasil:</h2>
+      <div id="results-container"></div>
+
+      <div class="actions">
+        <button id="copy-all" class="visually-hidden">Salin Semua Hasil</button>
+        <button id="download" class="visually-hidden">Unduh Hasil sebagai .txt</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const form = document.getElementById('form');
+    const results = document.querySelector('.results');
+    const resultsContainer = document.getElementById('results-container');
+    const copyAllButton = document.getElementById('copy-all');
+    const downloadButton = document.getElementById('download');
+    const reloadButton = document.getElementById('reload');
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    const countInput = document.getElementById('count');
+    const countError = document.getElementById('count-error');
+    const progressBar = document.querySelector('.progress-bar');
+    const progressBarInner = document.querySelector('.progress-bar-inner');
+    const formatSelect = document.getElementById('format');
+
+    const lastFormat = localStorage.getItem('selectedFormat');
+    if (lastFormat) {
+      formatSelect.value = lastFormat;
+    }
+
+    let lastEmail = '';
+    let lastCount = 0;
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      generateEmails();
+    });
+
+    formatSelect.addEventListener('change', _.debounce(() => {
+      if (lastEmail && lastCount) {
+        generateEmails();
+      }
+      localStorage.setItem('selectedFormat', formatSelect.value);
+    }, 300));
+
+    function generateEmails() {
+      const email = emailInput.value.split('@');
+      if (!emailInput.validity.valid || email[0].length < 5) {
+        emailError.classList.remove('visually-hidden');
+        return;
+      } else {
+        emailError.classList.add('visually-hidden');
+      }
+
+      const count = countInput.value;
+      if (!countInput.validity.valid) {
+        countError.classList.remove('visually-hidden');
+        return;
+      } else {
+        countError.classList.add('visually-hidden');
+      }
+
+      lastEmail = email;
+      lastCount = count;
+      const format = formatSelect.value;
+
+      results.classList.remove('visually-hidden');
+      copyAllButton.classList.remove('visually-hidden');
+      downloadButton.classList.remove('visually-hidden');
+      reloadButton.classList.remove('visually-hidden');
+      progressBar.classList.remove('visually-hidden');
+
+      progressBarInner.style.width = '0%';
+      resultsContainer.innerHTML = '';
+
+      let emails = [];
+
+      const generateEmail = (i) => {
+        let generatedEmail;
+        const namePart = email[0];
+
+        switch(format) {
+          case 'EmAiL@domain.com':
+            generatedEmail = `${generateRandomUppercase(namePart, 3)}@${email[1]}`;
+            break;
+          case 'email.us.er@domain.com':
+            generatedEmail = `${insertRandomDots(namePart, 2)}@${email[1]}`;
+            break;
+          case 'em.ail.us.er@domain.com':
+            generatedEmail = `${insertRandomDots(namePart, 3)}@${email[1]}`;
+            break;
+          case 'email+random@domain.com':
+            generatedEmail = `${namePart}+${generateRandomSuffix()}@${email[1]}`;
+            break;
+          case 'eMa.iL.uSer@domain.com':
+            generatedEmail = `${generateRandomUppercase(insertRandomDots(namePart, 2), 3)}@${email[1]}`;
+            break;
+          case 'eM.a.iL.uSer@domain.com':
+            generatedEmail = `${generateRandomUppercase(insertRandomDots(namePart, 3), 3)}@${email[1]}`;
+            break;
+          case 'eMa.il.uSer+random@domain.com':
+            generatedEmail = `${generateRandomUppercase(insertRandomDots(namePart, 2), 3)}+${generateRandomSuffix()}@${email[1]}`;
+            break;
+          case 'eMa.il.uS.er+random@domain.com':
+            generatedEmail = `${generateRandomUppercase(insertRandomDots(namePart, 3), 3)}+${generateRandomSuffix()}@${email[1]}`;
+            break;
+        }
+
+        emails.push(generatedEmail);
+        progressBarInner.style.width = `${(i / count) * 100}%`;
+
+        if (i < count) {
+          setTimeout(() => {
+            generateEmail(i + 1);
+          }, 1);
+        } else {
+          progressBar.classList.add('visually-hidden');
+
+          emails.forEach((email) => {
+            const emailElement = document.createElement('div');
+            emailElement.classList.add('results-email');
+
+            const emailSpan = document.createElement('span');
+            emailSpan.textContent = email;
+
+            const copyButton = document.createElement('button');
+            copyButton.textContent = 'Salin';
+            copyButton.addEventListener('click', () => {
+              navigator.clipboard.writeText(email);
+              alert('Email berhasil disalin.');
+            });
+
+            emailElement.appendChild(emailSpan);
+            emailElement.appendChild(copyButton);
+
+            resultsContainer.appendChild(emailElement);
+          });
+        }
+      };
+
+      generateEmail(1);
+    }
+
+    function insertRandomDots(namePart, dotCount) {
+      const nameArray = namePart.split('');
+      const maxDots = Math.min(dotCount, nameArray.length - 1);
+      const positions = new Set();
+
+      while (positions.size < maxDots) {
+        const randomPosition = Math.floor(Math.random() * (nameArray.length - 1)) + 1;
+        if (nameArray[randomPosition] !== '.' && nameArray[randomPosition - 1] !== '.' && nameArray[randomPosition + 1] !== '.' && !positions.has(randomPosition - 1) && !positions.has(randomPosition + 1)) {
+          positions.add(randomPosition);
+        }
+      }
+
+      // Sort positions and insert dots in reverse order to avoid index shifting
+      Array.from(positions).sort((a, b) => b - a).forEach(pos => {
+        nameArray.splice(pos, 0, '.');
+      });
+
+      return nameArray.join('');
+    }
+
+    function generateRandomUppercase(namePart, count) {
+      const randomIndices = new Set();
+      while (randomIndices.size < count && randomIndices.size < namePart.length) {
+        randomIndices.add(Math.floor(Math.random() * namePart.length));
+      }
+      let result = namePart.split('');
+      randomIndices.forEach(index => {
+        result[index] = result[index].toUpperCase();
+      });
+      return result.join('');
+    }
+
+    function generateRandomSuffix() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      const length = Math.floor(Math.random() * 8) + 2; // Random length between 2 and 9
+      let suffix = '';
+      for (let i = 0; i < length; i++) {
+        suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return suffix;
+    }
+
+    copyAllButton.addEventListener('click', () => {
+      let emails = [];
+
+      const emailElements = document.querySelectorAll('.results-email');
+      emailElements.forEach((element) => {
+        const email = element.querySelector('span').textContent;
+        emails.push(email);
+      });
+
+      navigator.clipboard.writeText(emails.join('\n'));
+      alert('Semua email berhasil disalin.');
+    });
+
+    downloadButton.addEventListener('click', () => {
+      let emails = [];
+
+      const emailElements = document.querySelectorAll('.results-email');
+      emailElements.forEach((element) => {
+        const email = element.querySelector('span').textContent;
+        emails.push(email);
+      });
+
+      const data = emails.join('\n');
+      const fileName = 'email-generated.txt';
+      const file = new File([data], fileName, { type: 'text/plain' });
+
+      const url = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.click();
+
+      URL.revokeObjectURL(url);
+    });
+
+    reloadButton.addEventListener('click', () => {
+      form.reset();
+      results.classList.add('visually-hidden');
+      resultsContainer.innerHTML = '';
+      copyAllButton.classList.add('visually-hidden');
+      downloadButton.classList.add('visually-hidden');
+      reloadButton.classList.add('visually-hidden');
+      progressBar.classList.add('visually-hidden');
+    });
+  </script>
+</body>
+</html>

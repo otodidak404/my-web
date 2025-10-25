@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy List Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: #29b6f6;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .title {
+            font-size: 1.5em;
+        }
+        
+        .description {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .input-area, .result-area {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        
+        .button {
+            background-color: #29b6f6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 1em;
+        }
+        
+        .button:hover {
+            background-color: #0b88d3;
+        }
+        
+        .instructions {
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions ul {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 25px;
+        }
+        
+        .copy-button {
+            background-color: #4caf50;
+            margin-left: 10px;
+        }
+        
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .clear-button {
+            background-color: #f44336;
+        }
+        
+        .sample-button {
+            background-color: #ff9800;
+        }
+        
+        .count {
+            margin-top: 10px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">IP</div>
+        <div>
+            <div class="title">Proxy List Extractor</div>
+            <div class="description">Ekstrak daftar IP:Port dari berbagai format</div>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Cara Penggunaan:</h3>
+        <ul>
+            <li>Tempel daftar proxy yang memiliki format IP:Port beserta informasi tambahan</li>
+            <li>Klik tombol "Ekstrak IP:Port" untuk mendapatkan hanya alamat IP dan port-nya saja</li>
+            <li>Hasil ekstraksi dapat disalin dengan klik tombol "Salin Hasil"</li>
+            <li>Contoh format input yang didukung: <code>103.160.12.96:2020 ID-N - </code> atau <code>http://103.160.12.96:2020 (Indonesia)</code></li>
+        </ul>
+    </div>
+    
+    <div class="input-area">
+        <div>Masukkan Daftar Proxy:</div>
+        <textarea id="input" placeholder="Contoh:
+27.79.177.167:16000 VN-H -
+180.94.80.18:8080 AF-N -
+103.160.12.96:2020 ID-N -
+..."></textarea>
+        <div class="button-container">
+            <button class="button" id="extract-button">Ekstrak IP:Port</button>
+            <button class="button sample-button" id="sample-button">Isi Contoh</button>
+            <button class="button clear-button" id="clear-button">Hapus</button>
+        </div>
+    </div>
+    
+    <div class="result-area">
+        <div>Hasil Ekstraksi (IP:Port saja):</div>
+        <textarea id="result" readonly></textarea>
+        <div class="count" id="count">0 alamat proxy ditemukan</div>
+        <div class="button-container">
+            <button class="button" id="copy-button">Salin Hasil</button>
+            <button class="button clear-button" id="clear-result-button">Hapus Hasil</button>
+        </div>
+    </div>
+    
+    <script>
+        // Ekstrak IP:Port dari teks
+        function extractProxies(text) {
+            const lines = text.split('\n');
+            const results = [];
+            
+            const ipv4PortRegex = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{1,5})/g;
+            
+            for (const line of lines) {
+                if (line.trim() === '') continue;
+                
+                const matches = [...line.matchAll(ipv4PortRegex)];
+                for (const match of matches) {
+                    const ip = match[1];
+                    const port = match[2];
+                    results.push(`${ip}:${port}`);
+                }
+            }
+            
+            return results;
+        }
+        
+        // Handle tombol ekstrak
+        document.getElementById('extract-button').addEventListener('click', function() {
+            const inputText = document.getElementById('input').value;
+            const proxies = extractProxies(inputText);
+            const resultText = proxies.join('\n');
+            
+            document.getElementById('result').value = resultText;
+            document.getElementById('count').textContent = `${proxies.length} alamat proxy ditemukan`;
+        });
+        
+        // Handle tombol salin
+        document.getElementById('copy-button').addEventListener('click', function() {
+            const resultText = document.getElementById('result');
+            resultText.select();
+            document.execCommand('copy');
+            
+            // Feedback visual
+            const originalText = this.textContent;
+            this.textContent = 'Disalin!';
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 1500);
+        });
+        
+        // Handle tombol hapus
+        document.getElementById('clear-button').addEventListener('click', function() {
+            document.getElementById('input').value = '';
+        });
+        
+        // Handle tombol hapus hasil
+        document.getElementById('clear-result-button').addEventListener('click', function() {
+            document.getElementById('result').value = '';
+            document.getElementById('count').textContent = '0 alamat proxy ditemukan';
+        });
+        
+        // Handle tombol sampel
+        document.getElementById('sample-button').addEventListener('click', function() {
+            const sampleData = `27.79.177.167:16000 VN-H -
+180.94.80.18:8080 AF-N -
+103.160.12.96:2020 ID-N -
+177.137.238.242:8080 BR-N -
+103.141.67.50:51935 BD-H -
+122.50.6.186:8080 ID-N -
+202.162.195.76:8080 ID-N-S -
+103.183.254.6:8080 ID-N-S -
+27.79.200.50:16000 VN-H-S -
+35.169.70.14:80 US-H -
+103.131.19.30:8011 ID-N -
+103.179.46.49:6789 IN-H! -
+122.154.75.204:8080 TH-N! -`;
+            
+            document.getElementById('input').value = sampleData;
+        });
+    </script>
+</body>
+</html>

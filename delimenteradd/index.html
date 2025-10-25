@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delimiter Add - syns4033</title>
+    <style>
+	
+	body {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #1e1e1e;
+    color: #00ff00;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1 {
+    text-align: center;
+    font-size: 24px;
+}
+
+textarea {
+    width: 100%;
+    height: 150px;
+    font-size: 16px;
+    padding: 10px;
+    background-color: #2e2e2e;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    box-sizing: border-box;
+    resize: none; /* Disable resizing */
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #2e2e2e;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+}
+
+button {
+    background-color: #00ff00;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #00cc00;
+}
+
+#output {
+    width: 100%;
+    height: 150px;
+    font-size: 16px;
+    padding: 10px;
+    background-color: #2e2e2e;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    box-sizing: border-box;
+    resize: none; /* Disable resizing */
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}
+
+</style>
+</head>
+<body>
+    <h1>Delimiter Add</h1>
+    <label for="input">Input (Multi-Line):</label>
+    <textarea id="input" placeholder="Enter your data here..."></textarea>
+    
+    <label for="delimiter">Delimiter:</label>
+    <select id="delimiter">
+        <option value="@">@</option>
+        <option value="#">#</option>
+        <option value="|">|</option>
+        <option value="##">##</option>
+        <option value="@@">@@</option>
+        <option value="||">||</option>
+        <option value=",">, (default)</option>
+    </select>
+    
+    <button id="prepend">Tambahkan di depan</button>
+    <button id="append">Tambahkan di belakang</button>
+    <button id="removeEmpty">Hapus Baris Kosong</button>
+    <button id="removeDuplicates">Hapus Duplikat</button>
+    <button id="sort">Urutkan</button>
+    <button id="clear">Clear</button>
+    
+    <h2>Final Output Preview</h2>
+    <textarea id="output" readonly></textarea>
+    
+    <button id="copy">Salin Text</button>
+    
+    <script>
+	
+	const inputArea = document.getElementById('input');
+const delimiterSelect = document.getElementById('delimiter');
+const prependButton = document.getElementById('prepend');
+const appendButton = document.getElementById('append');
+const removeEmptyButton = document.getElementById('removeEmpty');
+const removeDuplicatesButton = document.getElementById('removeDuplicates');
+const sortButton = document.getElementById('sort');
+const clearButton = document.getElementById('clear');
+const outputArea = document.getElementById('output');
+const copyButton = document.getElementById('copy');
+
+// Load saved delimiter from local storage
+window.onload = () => {
+    const savedDelimiter = localStorage.getItem('delimiter') || '@';
+    delimiterSelect.value = savedDelimiter;
+};
+
+// Save delimiter to local storage
+delimiterSelect.addEventListener('change', () => {
+    localStorage.setItem('delimiter', delimiterSelect.value);
+});
+
+prependButton.addEventListener('click', () => {
+    const inputLines = inputArea.value.split('\n');
+    const delimiter = delimiterSelect.value;
+    const outputLines = inputLines.map(line => `${delimiter}${line.trim()}`);
+    outputArea.value = outputLines.join('\n');
+});
+
+appendButton.addEventListener('click', () => {
+    const inputLines = inputArea.value.split('\n');
+    const delimiter = delimiterSelect.value;
+    const outputLines = inputLines.map(line => `${line.trim()}${delimiter}`);
+    outputArea.value = outputLines.join('\n');
+});
+
+removeEmptyButton.addEventListener('click', () => {
+    const inputLines = inputArea.value.split('\n').filter(line => line.trim() !== '');
+    inputArea.value = inputLines.join('\n');
+});
+
+removeDuplicatesButton.addEventListener('click', () => {
+    const inputLines = inputArea.value.split('\n');
+    const uniqueLines = [...new Set(inputLines)];
+    inputArea.value = uniqueLines.join('\n');
+});
+
+sortButton.addEventListener('click', () => {
+    const inputLines = inputArea.value.split('\n');
+    const sortedLines = inputLines.sort();
+    inputArea.value = sortedLines.join('\n');
+});
+
+clearButton.addEventListener('click', () => {
+    inputArea.value = '';
+    delimiterSelect.value = '@'; // Reset to default delimiter
+    outputArea.value = '';
+});
+
+copyButton.addEventListener('click', () => {
+    outputArea.select();
+    document.execCommand('copy');
+    alert('Output copied to clipboard!');
+});
+	
+	</script>
+</body>
+</html>

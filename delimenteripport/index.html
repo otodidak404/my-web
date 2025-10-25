@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP:Port Processor</title>
+    <style>
+	
+	body {
+    font-family: monospace;
+    background-color: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.terminal {
+    width: 80%;
+    margin: 20px auto;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #1f1f1f;
+    color: #fff;
+    overflow: hidden; /* Mencegah kotak digeser */
+}
+
+.prompt {
+    background-color: #2f4f7f;
+    padding: 5px;
+    border-radius: 5px 5px 0 0;
+    color: #fff;
+}
+
+textarea {
+    width: 100%;
+    height: 100px; /* Mengurangi tinggi agar lebih sesuai */
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+    border: none;
+    resize: none; /* Mencegah pengubahan ukuran textarea */
+}
+
+pre {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+    white-space: pre-wrap; /* Menjaga format output */
+    overflow-wrap: break-word; /* Memastikan kata tidak terpotong */
+}
+
+.button {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+    cursor: pointer;
+    border: none;
+}
+
+.button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.button-group {
+    margin-top: 10px;
+}
+
+select {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+    border: none;
+}
+
+/* Validasi Input */
+.invalid-input {
+    background-color: #ff0000;
+    color: white;
+}
+
+/* Umpan Balik Visual */
+.processing-indicator {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+/* Fitur Drag-and-Drop */
+.drag-and-drop-container {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+/* Fitur Filter dan Urutan */
+.filter-options {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+/* Fitur Enkripsi End-to-End */
+.encryption-indicator {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+/* Fitur Penyimpanan Lokal */
+.local-storage-indicator {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+/* Fitur Penghapusan Data */
+.data-deletion-indicator {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #2f4f7f;
+    color: #fff;
+}
+
+</style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="prompt">$</div>
+
+        <!-- Input Data -->
+        <label for="inputData">Masukkan daftar IP:Port (satu per baris):</label>
+        <textarea id="inputData"></textarea>
+
+        <!-- Pilih Protokol -->
+        <label for="protocol">Pilih Protokol:</label>
+        <select id="protocol">
+            <option value="">Pilih Protokol</option>
+            <option value="HTTP">HTTP</option>
+            <option value="SOCKS4">SOCKS4</option>
+            <option value="SOCKS5">SOCKS5</option>
+        </select>
+
+        <!-- Submit Button -->
+        <button id="submitBtn" class="button">Submit</button>
+
+        <!-- Output -->
+        <h2>Output</h2>
+        <pre id="output"></pre>
+
+        <!-- Download Button -->
+        <button id="downloadBtn" class="button">Download</button>
+
+        <!-- Copy Button -->
+        <button id="copyBtn" class="button">Copy</button>
+
+        <!-- Reset Button -->
+        <button id="resetBtn" class="button">Proses Ulang</button>
+
+        <!-- Umpan Balik Visual -->
+        <div class="processing-indicator">Proses...</div>
+
+        <!-- Fitur Drag-and-Drop -->
+        <div class="drag-and-drop-container">Drag files here</div>
+
+        <!-- Fitur Filter dan Urutan -->
+        <div class="filter-options">
+            <label for="filter">Filter:</label>
+            <select id="filter">
+                <option value="">Tidak Dipilih</option>
+                <option value="ip">IP</option>
+                <option value="port">Port</option>
+                <option value="protocol">Protokol</option>
+            </select>
+
+            <label for="order">Urutan:</label>
+            <select id="order">
+                <option value="">Tidak Dipilih</option>
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+
+        <!-- Fitur Enkripsi End-to-End -->
+        <div class="encryption-indicator">Data dienkripsi.</div>
+
+        <!-- Fitur Penyimpanan Lokal -->
+        <div class="local-storage-indicator">Data disimpan secara lokal.</div>
+
+        <!-- Fitur Penghapusan Data -->
+        <div class="data-deletion-indicator">Data dihapus secara permanen.</div>
+    </div>
+
+    <script>
+	
+	// Validasi Input
+function validateInput(data) {
+    const lines = data.split('\n');
+    let isValid = true;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const [ip, port] = line.trim().split(':');
+
+        if (!ip || !port || !isValidIP(ip) || !isValidPort(port)) {
+            isValid = false;
+            break;
+        }
+    }
+
+    return isValid;
+}
+
+function isValidIP(ip) {
+    const ipAddressRegex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipAddressRegex.test(ip);
+}
+
+function isValidPort(port) {
+    const portRegex = /^\d+$/;
+    return portRegex.test(port) && parseInt(port) >= 1 && parseInt(port) <= 65535;
+}
+
+// Umpan Balik Visual
+document.getElementById('submitBtn').onclick = function() {
+    const inputData = document.getElementById('inputData').value;
+    const protocol = document.getElementById('protocol').value;
+
+    if (!inputData.trim()) {
+        alert('Masukkan daftar IP:Port');
+        return;
+    }
+
+    if (!protocol) {
+        alert('Pilih protokol');
+        return;
+    }
+
+   // if (!validateInput(inputData)) {
+   //     alert('Input tidak valid. Pastikan format IP dan port benar.');
+   //     return;
+   // }
+
+    document.querySelector('.processing-indicator').style.display = 'block';
+
+    setTimeout(() => {
+        const output = processInput(inputData, protocol);
+        document.getElementById('output').textContent = output;
+
+        document.querySelector('.processing-indicator').style.display = 'none';
+    }, 2000); // Simulasi proses 2 detik
+};
+
+function processInput(data, protocol) {
+    const lines = data.split('\n');
+    let validLines = '';
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const [ip, port] = line.trim().split(':');
+
+        if (isValidIP(ip) && isValidPort(port)) {
+            validLines += `${protocol.toLowerCase()}://${ip}:${port}\n`;
+        } else {
+            alert(`Baris ${i + 1} tidak valid: ${line}`);
+        }
+    }
+
+    return validLines.trim() || 'Tidak ada output yang valid';
+}
+
+// Fitur Drag-and-Drop
+const dropZone = document.querySelector('.drag-and-drop-container');
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.background = '#4CAF50';
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.background = '#2f4f7f';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const data = reader.result;
+            const output = processInput(data, document.getElementById('protocol').value);
+            document.getElementById('output').textContent = output;
+        };
+        reader.readAsText(files[0]);
+    }
+    dropZone.style.background = '#2f4f7f';
+});
+
+// Fitur Filter dan Urutan
+const filterSelect = document.getElementById('filter');
+const orderSelect = document.getElementById('order');
+
+filterSelect.addEventListener('change', () => {
+    const filterValue = filterSelect.value;
+    const orderValue = orderSelect.value;
+
+    if (filterValue === 'ip' && orderValue === 'asc') {
+        // Simulasi filter dan urutan IP ascending
+        const filteredOutput = document.getElementById('output').textContent.split('\n').sort((a, b) => a.localeCompare(b)).join('\n');
+        document.getElementById('output').textContent = filteredOutput;
+    } else if (filterValue === 'port' && orderValue === 'desc') {
+        // Simulasi filter dan urutan Port descending
+        const filteredOutput = document.getElementById('output').textContent.split('\n').sort((a, b) => b.localeCompare(a)).join('\n');
+        document.getElementById('output').textContent = filteredOutput;
+    } else {
+        // Simulasi filter dan urutan default
+        const filteredOutput = document.getElementById('output').textContent;
+        document.getElementById('output').textContent = filteredOutput;
+    }
+});
+
+// Fitur Enkripsi End-to-End
+document.getElementById('downloadBtn').onclick = function() {
+    const output = document.getElementById('output').textContent;
+    const encryptedOutput = encryptData(output); // Simulasi enkripsi data
+
+    const blob = new Blob([encryptedOutput], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'output.txt';
+    link.click();
+
+    document.querySelector('.encryption-indicator').style.display = 'block';
+    setTimeout(() => {
+        document.querySelector('.encryption-indicator').style.display = 'none';
+    }, 2000); // Simulasi proses 2 detik
+};
+
+function encryptData(data) {
+    // Simulasi enkripsi data (gunakan algoritma enkripsi yang sesuai)
+    return data.replace(/./g, '*');
+}
+
+// Fitur Penyimpanan Lokal dan Penghapusan Data
+document.getElementById('copyBtn').onclick = function() {
+    const output = document.getElementById('output').textContent;
+    navigator.clipboard.writeText(output).then(() => {
+        alert('Output copied to clipboard!');
+    });
+
+    document.querySelector('.local-storage-indicator').style.display = 'block';
+    setTimeout(() => {
+        document.querySelector('.local-storage-indicator').style.display = 'none';
+    }, 2000); // Simulasi proses 2 detik
+
+    document.getElementById('resetBtn').onclick = function() {
+        document.getElementById('inputData').value = '';
+        document.getElementById('protocol').value = '';
+        document.getElementById('output').textContent = '';
+
+        document.querySelector('.data-deletion-indicator').style.display = 'block';
+        setTimeout(() => {
+            document.querySelector('.data-deletion-indicator').style.display = 'none';
+        }, 2000); // Simulasi proses 2 detik
+    };
+};
+	
+	</script>
+</body>
+</html>

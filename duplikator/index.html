@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembersih Duplikator Teks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .options {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .upload-container {
+            margin-bottom: 15px;
+            border: 2px dashed #ccc;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        .upload-container:hover {
+            border-color: #4CAF50;
+            background-color: #f0f8f0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #008CBA;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .file-label:hover {
+            background-color: #007099;
+        }
+        #file-name {
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        button {
+            padding: 10px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 10px;
+        }
+        .primary-btn {
+            background-color: #4CAF50;
+        }
+        .secondary-btn {
+            background-color: #008CBA;
+        }
+        .danger-btn {
+            background-color: #f44336;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        #stats {
+            background-color: #e7f3fe;
+            border: 1px solid #c2e0ff;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .notification {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pembersih Duplikator Teks</h1>
+        
+        <div class="upload-container">
+            <input type="file" id="fileInput" accept=".txt,.csv,.md,.json">
+            <label for="fileInput" class="file-label">Upload File</label>
+            <div id="file-name">Belum ada file dipilih</div>
+            <p>Unggah file teks (.txt, .csv, .md, .json)</p>
+        </div>
+        
+        <textarea id="inputText" placeholder="Masukkan teks di sini, satu item per baris..."></textarea>
+        
+        <div class="options">
+            <label>
+                <input type="checkbox" id="ignoreCase"> Abaikan huruf besar/kecil
+            </label>
+            <label>
+                <input type="checkbox" id="ignoreSpaces"> Abaikan spasi berlebih
+            </label>
+            <label>
+                <input type="checkbox" id="trimLines"> Hapus spasi di awal/akhir baris
+            </label>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="removeDuplicates()" class="primary-btn">Hapus Duplikat</button>
+            <button onclick="sortLines()" class="secondary-btn">Urutkan</button>
+            <button onclick="clearInput()" class="danger-btn">Bersihkan Input</button>
+        </div>
+        
+        <textarea id="outputText" placeholder="Hasil akan muncul di sini..." readonly></textarea>
+        
+        <div class="button-group">
+            <button onclick="copyOutput()" class="secondary-btn">Salin Hasil</button>
+            <button onclick="downloadOutput()" class="secondary-btn">Unduh Hasil</button>
+            <button onclick="clearOutput()" class="danger-btn">Bersihkan Output</button>
+        </div>
+        
+        <div id="notification" class="notification success">Teks berhasil disalin!</div>
+        <div id="stats"></div>
+    </div>
+
+    <script>
+        // Event listener untuk upload file
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-name').textContent = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('inputText').value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        }
+        
+        function removeDuplicates() {
+            const input = document.getElementById('inputText').value;
+            const ignoreCase = document.getElementById('ignoreCase').checked;
+            const ignoreSpaces = document.getElementById('ignoreSpaces').checked;
+            const trimLines = document.getElementById('trimLines').checked;
+            
+            let lines = input.split('\n');
+            
+            // Preprocess lines based on options
+            if (trimLines) {
+                lines = lines.map(line => line.trim());
+            }
+            
+            lines = lines.filter(Boolean); // Remove empty lines
+            
+            const uniqueMap = new Map();
+            const uniqueLines = [];
+            let duplicatesRemoved = 0;
+
+            lines.forEach(line => {
+                let key = line;
+                
+                if (ignoreCase) {
+                    key = key.toLowerCase();
+                }
+                
+                if (ignoreSpaces) {
+                    key = key.replace(/\s+/g, ' ');
+                }
+                
+                if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, true);
+                    uniqueLines.push(line); // Keep original line format
+                } else {
+                    duplicatesRemoved++;
+                }
+            });
+
+            const output = uniqueLines.join('\n');
+            document.getElementById('outputText').value = output;
+
+            // Update stats
+            updateStats(lines.length, uniqueLines.length, duplicatesRemoved);
+        }
+        
+        function sortLines() {
+            const outputText = document.getElementById('outputText');
+            let lines = outputText.value ? outputText.value.split('\n') : document.getElementById('inputText').value.split('\n');
+            
+            lines = lines.filter(Boolean).sort();
+            outputText.value = lines.join('\n');
+            
+            // Update stats if there's data
+            if (lines.length > 0) {
+                updateStats(lines.length, lines.length, 0);
+            }
+        }
+
+        function copyOutput() {
+            const outputText = document.getElementById('outputText');
+            if (!outputText.value) return;
+            
+            outputText.select();
+            document.execCommand('copy');
+            
+            // Show notification
+            const notification = document.getElementById('notification');
+            notification.textContent = 'Hasil telah disalin ke clipboard!';
+            notification.style.display = 'block';
+            
+            // Hide notification after 2 seconds
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 2000);
+        }
+        
+        function downloadOutput() {
+            const output = document.getElementById('outputText').value;
+            if (!output) return;
+            
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hasil-pembersihan.txt';
+            document.body.appendChild(a);
+            a.click();
+            
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 0);
+        }
+
+        function clearInput() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('stats').innerHTML = '';
+            document.getElementById('file-name').textContent = 'Belum ada file dipilih';
+            document.getElementById('fileInput').value = '';
+        }
+
+        function clearOutput() {
+            document.getElementById('outputText').value = '';
+            document.getElementById('stats').innerHTML = '';
+        }
+        
+        function updateStats(total, unique, removed) {
+            const statsElement = document.getElementById('stats');
+            statsElement.innerHTML = `
+                <strong>Statistik:</strong><br>
+                Total baris: ${total}<br>
+                Baris unik: ${unique}<br>
+                Duplikat dihapus: ${removed}
+            `;
+        }
+    </script>
+</body>
+</html>

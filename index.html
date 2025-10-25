@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNS4033 OTODIDAK404</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+
+        .dark-mode {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --secondary: #a78bfa;
+            --accent: #f472b6;
+            --bg-light: #0f172a;
+            --bg-card: #1e293b;
+            --text-dark: #f1f5f9;
+            --text-light: #cbd5e1;
+            --border: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .dark-mode .header {
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .theme-btn {
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0 2rem;
+        }
+
+        .sort-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .sort-label {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .sort-select {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-dark);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .sort-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .sort-select:hover {
+            border-color: var(--primary);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .tool-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .tool-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .tool-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tool-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), #f97316);
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            margin-left: 0.5rem;
+            font-weight: 600;
+        }
+
+        .tool-desc {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 4rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                gap: 1rem;
+            }
+
+            .logo {
+                width: 100%;
+                text-align: center;
+            }
+
+            .search-box {
+                order: 3;
+                max-width: 100%;
+            }
+
+            .theme-btn {
+                margin-left: auto;
+            }
+
+            .tools-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .sort-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sort-select {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .container, .nav {
+                max-width: 1600px;
+            }
+
+            .tools-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">Syn4033<span style="color: var(--secondary)">Tools</span></div>
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Cari tools...">
+            </div>
+            <button class="theme-btn" id="themeToggle">
+                <i class="fas fa-moon"></i> Mode Gelap
+            </button>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Koleksi Tools Web Developer</h1>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTools">25</div>
+                <div class="stat-label">Total Tools</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="newTools">9</div>
+                <div class="stat-label">Tools Baru</div>
+            </div>
+        </div>
+
+        <div class="sort-container">
+            <span class="sort-label">Urutkan:</span>
+            <select class="sort-select" id="sortSelect">
+                <option value="default">Default</option>
+                <option value="a-z">A - Z</option>
+                <option value="z-a">Z - A</option>
+                <option value="newest">Terbaru Dulu</option>
+            </select>
+        </div>
+
+        <div class="tools-grid">
+            <div class="tool-card" data-url="/proxycheckerv1/">
+                <div class="tool-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="tool-title">Proxy Checker V1<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi proxy dengan metode dasar</div>
+            </div>
+
+            <div class="tool-card" data-url="/proxycheckerv2/">
+                <div class="tool-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="tool-title">Proxy Checker V2<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi proxy dengan metode lanjutan</div>
+            </div>
+
+            <div class="tool-card" data-url="/proxycheckerv3/">
+                <div class="tool-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="tool-title">Proxy Checker V3<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi proxy dengan fitur tambahan</div>
+            </div>
+
+            <div class="tool-card" data-url="/ccchekerv1/">
+                <div class="tool-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="tool-title">Credit Card Checker V1<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi kartu kredit dengan metode dasar</div>
+            </div>
+
+            <div class="tool-card" data-url="/ccchekerv2/">
+                <div class="tool-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="tool-title">Credit Card Checker V2<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi kartu kredit dengan metode lanjutan</div>
+            </div>
+
+            <div class="tool-card" data-url="/sk-checker/">
+                <div class="tool-icon"><i class="fas fa-key"></i></div>
+                <div class="tool-title">SK Checker<span class="badge">Baru</span></div>
+                <div class="tool-desc">Verifikasi Secret Key untuk berbagai layanan API</div>
+            </div>
+
+            <div class="tool-card" data-url="/cc-gen-v1/">
+                <div class="tool-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="tool-title">Credit Card Generator V1</div>
+                <div class="tool-desc">Generator kartu kredit untuk testing</div>
+            </div>
+
+            <div class="tool-card" data-url="/cc-gen-v2/">
+                <div class="tool-icon"><i class="fas fa-credit-card"></i></div>
+                <div class="tool-title">Credit Card Generator V2</div>
+                <div class="tool-desc">Versi terbaru generator kartu kredit</div>
+            </div>
+
+            <div class="tool-card" data-url="/emailgenerator/">
+                <div class="tool-icon"><i class="fas fa-envelope"></i></div>
+                <div class="tool-title">Email Generator</div>
+                <div class="tool-desc">Generator alamat email random</div>
+            </div>
+
+            <div class="tool-card" data-url="/ua-generator/">
+                <div class="tool-icon"><i class="fas fa-globe"></i></div>
+                <div class="tool-title">User Agent Generator</div>
+                <div class="tool-desc">Generator User Agent untuk testing</div>
+            </div>
+
+            <div class="tool-card" data-url="/resizer/">
+                <div class="tool-icon"><i class="fas fa-compress-alt"></i></div>
+                <div class="tool-title">Image Resizer</div>
+                <div class="tool-desc">Ubah ukuran gambar dengan mudah</div>
+            </div>
+
+            <div class="tool-card" data-url="/rnd-txt-gen/">
+                <div class="tool-icon"><i class="fas fa-font"></i></div>
+                <div class="tool-title">Random Text Generator</div>
+                <div class="tool-desc">Generator teks acak untuk keperluan testing</div>
+            </div>
+
+            <div class="tool-card" data-url="/delimenteradd/">
+                <div class="tool-icon"><i class="fas fa-plus-circle"></i></div>
+                <div class="tool-title">Delimenter Add</div>
+                <div class="tool-desc">Tambahkan delimenter pada teks</div>
+            </div>
+
+            <div class="tool-card" data-url="/delimenterinputkata/">
+                <div class="tool-icon"><i class="fas fa-keyboard"></i></div>
+                <div class="tool-title">Delimenter Input Kata</div>
+                <div class="tool-desc">Input kata dengan delimenter</div>
+            </div>
+
+            <div class="tool-card" data-url="/delimenteripport/">
+                <div class="tool-icon"><i class="fas fa-network-wired"></i></div>
+                <div class="tool-title">Pemisah dan Penambah IP Port</div>
+                <div class="tool-desc">Manipulasi format IP dan port</div>
+            </div>
+
+            <div class="tool-card" data-url="/duplikator/">
+                <div class="tool-icon"><i class="fas fa-copy"></i></div>
+                <div class="tool-title">Duplikat Remover</div>
+                <div class="tool-desc">Hapus duplikasi data</div>
+            </div>
+
+            <div class="tool-card" data-url="/pemisahemail/">
+                <div class="tool-icon"><i class="fas fa-envelope-open-text"></i></div>
+                <div class="tool-title">Pemisah Email</div>
+                <div class="tool-desc">Pisahkan email dari teks</div>
+            </div>
+
+            <div class="tool-card" data-url="/emaildomfilter/">
+                <div class="tool-icon"><i class="fas fa-filter"></i></div>
+                <div class="tool-title">Mail Domain Filter</div>
+                <div class="tool-desc">Filter email berdasarkan domain</div>
+            </div>
+
+            <div class="tool-card" data-url="/emailmatcher/">
+                <div class="tool-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="tool-title">Mail Match</div>
+                <div class="tool-desc">Cocokkan pola email</div>
+            </div>
+
+            <div class="tool-card" data-url="/universal-mail-pwd-extractor/">
+                <div class="tool-icon"><i class="fas fa-key"></i></div>
+                <div class="tool-title">Mail Password Extractor</div>
+                <div class="tool-desc">Ekstrak password dari format email:password</div>
+            </div>
+
+            <div class="tool-card" data-url="/bugbounty/">
+                <div class="tool-icon"><i class="fas fa-bug"></i></div>
+                <div class="tool-title">Bug Finder</div>
+                <div class="tool-desc">Tool untuk mencari bug dalam kode</div>
+            </div>
+
+            <div class="tool-card" data-url="/deobfuscator/">
+                <div class="tool-icon"><i class="fas fa-code"></i></div>
+                <div class="tool-title">Deobfuscator JS</div>
+                <div class="tool-desc">Bersihkan kode JavaScript yang diobfuskasi</div>
+            </div>
+
+            <div class="tool-card" data-url="/proxylistextractor/">
+                <div class="tool-icon"><i class="fas fa-server"></i></div>
+                <div class="tool-title">Delimenter Proxy</div>
+                <div class="tool-desc">Ekstrak dan bersihkan daftar proxy</div>
+            </div>
+
+            <div class="tool-card" data-url="/vulnerability-scanner/">
+                <div class="tool-icon"><i class="fas fa-search"></i></div>
+                <div class="tool-title">Vulnerability Scanner<span class="badge">Baru</span></div>
+                <div class="tool-desc">Scan kerentanan keamanan pada website</div>
+            </div>
+
+            <div class="tool-card" data-url="/jwt/">
+                <div class="tool-icon"><i class="fas fa-lock"></i></div>
+                <div class="tool-title">JWT Decoder + Info<span class="badge">Baru</span></div>
+                <div class="tool-desc">Decode dan analisis JSON Web Token</div>
+            </div>
+
+            <div class="tool-card" data-url="/Text-Line-Manipulator/">
+                <div class="tool-icon"><i class="fas fa-align-left"></i></div>
+                <div class="tool-title">Text Line Manipulator<span class="badge">Baru</span></div>
+                <div class="tool-desc">Manipulasi baris teks dengan mudah</div>
+            </div>
+
+            <div class="tool-card" data-url="/query-decoder/">
+                <div class="tool-icon"><i class="fab fa-telegram"></i></div>
+                <div class="tool-title">Query Telegram Cleaner</div>
+                <div class="tool-desc">Bersihkan query Telegram</div>
+            </div>
+
+            <div class="tool-card" data-url="/url-decoder/">
+                <div class="tool-icon"><i class="fas fa-link"></i></div>
+                <div class="tool-title">URL Link Decoder</div>
+                <div class="tool-desc">Decode URL yang terenkripsi</div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 DevTools Collection. Semua hak cipta dilindungi.</p>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const toolsGrid = document.querySelector('.tools-grid');
+        
+        // Theme toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            themeToggle.innerHTML = isDark 
+                ? '<i class="fas fa-sun"></i> Mode Terang'
+                : '<i class="fas fa-moon"></i> Mode Gelap';
+            localStorage.setItem('darkMode', isDark);
+        });
+
+        // Load saved theme
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i> Mode Terang';
+        }
+
+        // Tool card navigation
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const url = card.getAttribute('data-url');
+                if (url) window.location.href = url;
+            });
+        });
+
+        // Sort functionality
+        sortSelect.addEventListener('change', (e) => {
+            const cards = Array.from(document.querySelectorAll('.tool-card'));
+            const sortType = e.target.value;
+            
+            cards.sort((a, b) => {
+                const titleA = a.querySelector('.tool-title').textContent.toLowerCase();
+                const titleB = b.querySelector('.tool-title').textContent.toLowerCase();
+                const hasNewA = a.querySelector('.badge') !== null;
+                const hasNewB = b.querySelector('.badge') !== null;
+                
+                switch(sortType) {
+                    case 'a-z':
+                        return titleA.localeCompare(titleB);
+                    case 'z-a':
+                        return titleB.localeCompare(titleA);
+                    case 'newest':
+                        if (hasNewA && !hasNewB) return -1;
+                        if (!hasNewA && hasNewB) return 1;
+                        return titleA.localeCompare(titleB);
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Reorder cards in DOM
+            cards.forEach(card => toolsGrid.appendChild(card));
+            
+            // Save sort preference
+            localStorage.setItem('sortPreference', sortType);
+        });
+
+        // Load saved sort preference
+        const savedSort = localStorage.getItem('sortPreference');
+        if (savedSort) {
+            sortSelect.value = savedSort;
+            sortSelect.dispatchEvent(new Event('change'));
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.tool-card');
+            let visible = 0;
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.tool-title').textContent.toLowerCase();
+                const desc = card.querySelector('.tool-desc').textContent.toLowerCase();
+                const match = title.includes(term) || desc.includes(term);
+                card.style.display = match ? 'block' : 'none';
+                if (match) visible++;
+            });
+            
+            document.getElementById('totalTools').textContent = visible;
+        });
+
+        // Count tools
+        document.getElementById('totalTools').textContent = document.querySelectorAll('.tool-card').length;
+    </script>
+</body>
+</html>

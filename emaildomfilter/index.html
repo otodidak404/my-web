@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Email Berdasarkan Domain</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --danger-color: #e74c3c;
+            --danger-dark: #c0392b;
+            --success-color: #2ecc71;
+            --success-dark: #27ae60;
+            --warning-color: #f39c12;
+            --dark-color: #34495e;
+            --light-color: #f5f5f5;
+            --gray-color: #bdc3c7;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: var(--light-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .main {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .main {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .sidebar {
+                width: 40%;
+            }
+            
+            .content {
+                width: 60%;
+            }
+        }
+        
+        .panel {
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .panel-header {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 6px 6px 0 0;
+        }
+        
+        .panel-body {
+            padding: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 36px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+        
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: var(--success-dark);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .statistics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-box {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .stat-box.excluded {
+            border-left-color: var(--danger-color);
+        }
+        
+        .stat-box.included {
+            border-left-color: var(--success-color);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .result-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background-color: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+            animation: notificationFadeIn 0.3s;
+        }
+        
+        @keyframes notificationFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .domain-suggestion {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .domain-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .domain-pill {
+            background-color: var(--gray-color);
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .domain-pill:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: var(--primary-dark);
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+        }
+        
+        .tab-container {
+            margin-bottom: 20px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            padding-top: 15px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Filter Email Berdasarkan Domain</h1>
+            <div class="subtitle">Memfilter email berdasarkan domain yang tidak diinginkan</div>
+        </header>
+        
+        <div class="main">
+            <div class="sidebar">
+                <div class="panel">
+                    <div class="panel-header">Pengaturan Filter</div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="domainInput">Tambahkan Domain yang Ingin Dikecualikan:</label>
+                            <input type="text" id="domainInput" placeholder="Contoh: @gmail.com, @yahoo.com">
+                            <div class="tags-container" id="domainsContainer"></div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary" id="addDomainBtn">Tambah Domain</button>
+                            <button class="btn btn-danger" id="clearDomainsBtn">Hapus Semua</button>
+                        </div>
+                        
+                        <div class="domain-suggestion">
+                            <label>Domain yang Terdeteksi:</label>
+                            <div class="domain-pills" id="domainSuggestions"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <div class="panel-header">Bantuan</div>
+                    <div class="panel-body">
+                        <div class="info-box">
+                            <h3>Cara Penggunaan:</h3>
+                            <ul>
+                                <li>Tempel daftar email pada kolom input</li>
+                                <li>Tambahkan domain yang ingin dikecualikan</li>
+                                <li>Klik "Filter Email" untuk memproses</li>
+                                <li>Hasil akan ditampilkan tanpa domain yang dikecualikan</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="info-box">
+                            <h3>Format yang Didukung:</h3>
+                            <ul>
+                                <li>email@domain.com|password</li>
+                                <li>email@domain.com:password</li>
+                                <li>email@domain.com password</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="panel">
+                    <div class="panel-header">Data Email</div>
+                    <div class="panel-body">
+                        <div class="tab-container">
+                            <div class="tab-buttons">
+                                <button class="tab-button active" data-tab="input">Input</button>
+                                <button class="tab-button" data-tab="result">Hasil Filter</button>
+                                <button class="tab-button" data-tab="excluded">Email Dikecualikan</button>
+                            </div>
+                            
+                            <div class="tab-content active" id="input-tab">
+                                <div class="form-group">
+                                    <label for="emailInput">Masukkan Daftar Email:</label>
+                                    <textarea id="emailInput" placeholder="Contoh:
+user1@gmail.com|password1
+user2@yahoo.com|password2
+user3@hotmail.com|password3"></textarea>
+                                </div>
+                                
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" id="filterBtn">Filter Email</button>
+                                    <button class="btn btn-danger" id="clearInputBtn">Bersihkan</button>
+                                    <button class="btn btn-success" id="analyzeBtn">Analisis Domain</button>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="result-tab">
+                                <div class="statistics">
+                                    <div class="stat-box">
+                                        <div class="stat-value" id="totalEmailsCount">0</div>
+                                        <div class="stat-label">Total Email</div>
+                                    </div>
+                                    <div class="stat-box included">
+                                        <div class="stat-value" id="includedEmailsCount">0</div>
+                                        <div class="stat-label">Email Disertakan</div>
+                                    </div>
+                                    <div class="stat-box excluded">
+                                        <div class="stat-value" id="excludedEmailsCount">0</div>
+                                        <div class="stat-label">Email Dikecualikan</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="result-toolbar">
+                                    <label>Hasil Filter:</label>
+                                    <button class="btn btn-success" id="copyResultBtn">Salin Hasil</button>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <textarea id="resultOutput" readonly placeholder="Hasil filter akan ditampilkan di sini..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-content" id="excluded-tab">
+                                <div class="result-toolbar">
+                                    <label>Email yang Dikecualikan:</label>
+                                    <button class="btn btn-primary" id="copyExcludedBtn">Salin</button>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <textarea id="excludedOutput" readonly placeholder="Email yang dikecualikan akan ditampilkan di sini..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="analysisModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Analisis Domain</h3>
+                <button class="modal-close" id="closeAnalysisModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="domainAnalysisList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">Email berhasil disalin ke clipboard!</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const domainInput = document.getElementById('domainInput');
+            const domainsContainer = document.getElementById('domainsContainer');
+            const addDomainBtn = document.getElementById('addDomainBtn');
+            const clearDomainsBtn = document.getElementById('clearDomainsBtn');
+            const emailInput = document.getElementById('emailInput');
+            const filterBtn = document.getElementById('filterBtn');
+            const clearInputBtn = document.getElementById('clearInputBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultOutput = document.getElementById('resultOutput');
+            const excludedOutput = document.getElementById('excludedOutput');
+            const copyResultBtn = document.getElementById('copyResultBtn');
+            const copyExcludedBtn = document.getElementById('copyExcludedBtn');
+            const totalEmailsCount = document.getElementById('totalEmailsCount');
+            const includedEmailsCount = document.getElementById('includedEmailsCount');
+            const excludedEmailsCount = document.getElementById('excludedEmailsCount');
+            const analysisModal = document.getElementById('analysisModal');
+            const closeAnalysisModal = document.getElementById('closeAnalysisModal');
+            const domainAnalysisList = document.getElementById('domainAnalysisList');
+            const notification = document.getElementById('notification');
+            const domainSuggestions = document.getElementById('domainSuggestions');
+            const domainSuggestionContainer = document.querySelector('.domain-suggestion');
+            
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    button.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Initialize excluded domains array
+            let excludedDomains = [];
+            
+            // Add domain to excluded list
+            function addDomain(domain) {
+                if (!domain) return;
+                
+                // Ensure domain starts with @
+                if (!domain.startsWith('@')) {
+                    domain = '@' + domain;
+                }
+                
+                domain = domain.toLowerCase().trim();
+                
+                // Check if domain already exists
+                if (excludedDomains.includes(domain)) {
+                    return;
+                }
+                
+                excludedDomains.push(domain);
+                renderDomainTags();
+                domainInput.value = '';
+            }
+            
+            // Render domain tags
+            function renderDomainTags() {
+                domainsContainer.innerHTML = '';
+                
+                excludedDomains.forEach(domain => {
+                    const tag = document.createElement('div');
+                    tag.className = 'tag';
+                    tag.innerHTML = `
+                        ${domain}
+                        <button class="tag-remove" data-domain="${domain}">&times;</button>
+                    `;
+                    domainsContainer.appendChild(tag);
+                });
+                
+                // Add event listeners to remove buttons
+                document.querySelectorAll('.tag-remove').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const domainToRemove = this.getAttribute('data-domain');
+                        excludedDomains = excludedDomains.filter(d => d !== domainToRemove);
+                        renderDomainTags();
+                    });
+                });
+            }
+            
+            // Add domain button click
+            addDomainBtn.addEventListener('click', function() {
+                const domains = domainInput.value.split(/[\s,;]+/);
+                domains.forEach(domain => {
+                    if (domain.trim()) {
+                        addDomain(domain.trim());
+                    }
+                });
+            });
+            
+            // Domain input enter key
+            domainInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const domains = domainInput.value.split(/[\s,;]+/);
+                    domains.forEach(domain => {
+                        if (domain.trim()) {
+                            addDomain(domain.trim());
+                        }
+                    });
+                }
+            });
+            
+            // Clear all domains
+            clearDomainsBtn.addEventListener('click', function() {
+                excludedDomains = [];
+                renderDomainTags();
+            });
+            
+            // Extract domain from email
+            function extractDomain(email) {
+                const atIndex = email.indexOf('@');
+                if (atIndex === -1) return null;
+                return '@' + email.slice(atIndex + 1).toLowerCase();
+            }
+            
+            // Filter emails
+            function filterEmails() {
+                const emailText = emailInput.value.trim();
+                if (!emailText) {
+                    alert('Silakan masukkan daftar email terlebih dahulu.');
+                    return;
+                }
+                
+                // Split input into lines
+                const lines = emailText.split('\n');
+                let included = [];
+                let excluded = [];
+                
+                // Process each line
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    // Extract email from line
+                    let email = '';
+                    let password = '';
+                    let separator = '';
+                    
+                    // Check for pipe separator
+                    if (line.includes('|')) {
+                        const parts = line.split('|');
+                        email = parts[0].trim();
+                        password = parts.slice(1).join('|').trim();
+                        separator = '|';
+                    }
+                    // Check for colon separator
+                    else if (line.includes(':')) {
+                        const parts = line.split(':');
+                        email = parts[0].trim();
+                        password = parts.slice(1).join(':').trim();
+                        separator = ':';
+                    }
+                    // Assume space separator
+                    else if (line.includes(' ')) {
+                        const parts = line.split(' ');
+                        email = parts[0].trim();
+                        password = parts.slice(1).join(' ').trim();
+                        separator = ' ';
+                    }
+                    // Just email
+                    else {
+                        email = line.trim();
+                    }
+                    
+                    // Check if email contains @ symbol
+                    if (email.includes('@')) {
+                        const domain = extractDomain(email);
+                        
+                        // Check if domain is in excluded list
+                        if (domain && excludedDomains.some(d => domain.includes(d))) {
+                            excluded.push(line);
+                        } else {
+                            included.push(line);
+                        }
+                    } else {
+                        // Not a valid email, include it anyway
+                        included.push(line);
+                    }
+                });
+                
+                // Update results
+                resultOutput.value = included.join('\n');
+                excludedOutput.value = excluded.join('\n');
+                
+                // Update stats
+                totalEmailsCount.textContent = lines.filter(line => line.trim()).length;
+                includedEmailsCount.textContent = included.length;
+                excludedEmailsCount.textContent = excluded.length;
+                
+                // Switch to results tab
+                document.querySelector('[data-tab="result"]').click();
+            }
+            
+            // Filter button click
+            filterBtn.addEventListener('click', filterEmails);
+            
+            // Clear input button
+            clearInputBtn.addEventListener('click', function() {
+                emailInput.value = '';
+            });
+            
+            // Analyze domains
+            analyzeBtn.addEventListener('click', function() {
+                const emailText = emailInput.value.trim();
+                if (!emailText) {
+                    alert('Silakan masukkan daftar email terlebih dahulu.');
+                    return;
+                }
+                
+                // Count domains
+                const domainCount = {};
+                const lines = emailText.split('\n');
+                let validEmailCount = 0;
+                
+                lines.forEach(line => {
+                    if (!line.trim()) return;
+                    
+                    // Extract email
+                    let email = line;
+                    if (line.includes('|')) {
+                        email = line.split('|')[0].trim();
+                    } else if (line.includes(':')) {
+                        email = line.split(':')[0].trim();
+                    } else if (line.includes(' ')) {
+                        email = line.split(' ')[0].trim();
+                    }
+                    
+                    const domain = extractDomain(email);
+                    if (domain) {
+                        validEmailCount++;
+                        domainCount[domain] = (domainCount[domain] || 0) + 1;
+                    }
+                });
+                
+                // Sort domains by count
+                const sortedDomains = Object.entries(domainCount)
+                    .sort((a, b) => b[1] - a[1]);
+                
+                // Render domain analysis
+                let analysisHtml = `<h3>Analisis ${validEmailCount} Email</h3>`;
+                
+                if (sortedDomains.length > 0) {
+                    analysisHtml += '<table style="width:100%; border-collapse: collapse; margin-top: 15px;">';
+                    analysisHtml += '<tr style="background-color: #f8f9fa;">';
+                    analysisHtml += '<th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Domain</th>';
+                    analysisHtml += '<th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Jumlah</th>';
+                    analysisHtml += '<th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Persentase</th>';
+                    analysisHtml += '<th style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">Aksi</th>';
+                    analysisHtml += '</tr>';
+                    
+                    sortedDomains.forEach(([domain, count]) => {
+                        const percentage = ((count / validEmailCount) * 100).toFixed(1);
+                        const isExcluded = excludedDomains.includes(domain);
+                        
+                        analysisHtml += `<tr style="border-bottom: 1px solid #eee;">`;
+                        analysisHtml += `<td style="padding: 8px;">${domain}</td>`;
+                        analysisHtml += `<td style="text-align: right; padding: 8px;">${count}</td>`;
+                        analysisHtml += `<td style="text-align: right; padding: 8px;">${percentage}%</td>`;
+                        analysisHtml += `<td style="text-align: center; padding: 8px;">`;
+                        
+                        if (isExcluded) {
+                            analysisHtml += `<button 
+                                class="btn btn-danger" 
+                                style="padding: 5px 10px; font-size: 12px;" 
+                                onclick="removeDomainFromExcluded('${domain}')">
+                                Sertakan
+                            </button>`;
+                        } else {
+                            analysisHtml += `<button 
+                                class="btn btn-primary" 
+                                style="padding: 5px 10px; font-size: 12px;"
+                                onclick="addDomainToExcluded('${domain}')">
+                                Kecualikan
+                            </button>`;
+                        }
+                        
+                        analysisHtml += `</td>`;
+                        analysisHtml += `</tr>`;
+                    });
+                    
+                    analysisHtml += '</table>';
+                    
+                    // Add domain suggestions
+                    domainSuggestionContainer.style.display = 'block';
+                    domainSuggestions.innerHTML = '';
+                    
+                    sortedDomains.slice(0, 5).forEach(([domain, count]) => {
+                        const domainPill = document.createElement('div');
+                        domainPill.className = 'domain-pill';
+                        domainPill.textContent = domain;
+                        domainPill.addEventListener('click', () => {
+                            addDomain(domain);
+                        });
+                        domainSuggestions.appendChild(domainPill);
+                    });
+                } else {
+                    analysisHtml += '<p>Tidak ada email yang valid untuk dianalisis.</p>';
+                }
+                
+                domainAnalysisList.innerHTML = analysisHtml;
+                analysisModal.style.display = 'flex';
+            });
+            
+            // Close analysis modal
+            closeAnalysisModal.addEventListener('click', function() {
+                analysisModal.style.display = 'none';
+            });
+            
+            // Click outside modal to close
+            window.addEventListener('click', function(e) {
+                if (e.target === analysisModal) {
+                    analysisModal.style.display = 'none';
+                }
+            });
+            
+            // Copy result button
+            copyResultBtn.addEventListener('click', function() {
+                if (!resultOutput.value.trim()) return;
+                
+                navigator.clipboard.writeText(resultOutput.value)
+                    .then(() => {
+                        showNotification('Email yang disertakan berhasil disalin!');
+                    })
+                    .catch(err => {
+                        alert('Gagal menyalin teks: ' + err);
+                    });
+            });
+            
+            // Copy excluded button
+            copyExcludedBtn.addEventListener('click', function() {
+    if (!excludedOutput.value.trim()) return;
+    
+    navigator.clipboard.writeText(excludedOutput.value)
+        .then(() => {
+            showNotification('Email yang dikecualikan berhasil disalin!');
+        })
+        .catch(err => {
+            alert('Gagal menyalin teks: ' + err);
+        });
+});
+
+// Show notification function
+function showNotification(message) {
+    notification.textContent = message;
+    notification.style.display = 'block';
+    
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// Add functions to window for onclick access from HTML
+window.addDomainToExcluded = function(domain) {
+    addDomain(domain);
+    analyzeBtn.click(); // Refresh analysis
+};
+
+window.removeDomainFromExcluded = function(domain) {
+    excludedDomains = excludedDomains.filter(d => d !== domain);
+    renderDomainTags();
+    analyzeBtn.click(); // Refresh analysis
+};
+
+// Close modal with ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && analysisModal.style.display === 'flex') {
+        analysisModal.style.display = 'none';
+    }
+});
+
+// Handle drag and drop for email input
+emailInput.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    emailInput.style.borderColor = 'var(--primary-color)';
+    emailInput.style.backgroundColor = 'rgba(52, 152, 219, 0.05)';
+});
+
+emailInput.addEventListener('dragleave', function() {
+    emailInput.style.borderColor = '#ddd';
+    emailInput.style.backgroundColor = '';
+});
+
+emailInput.addEventListener('drop', function(e) {
+    e.preventDefault();
+    emailInput.style.borderColor = '#ddd';
+    emailInput.style.backgroundColor = '';
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            emailInput.value = e.target.result;
+        };
+        reader.readAsText(file);
+    }
+});
+
+// Save domains to localStorage
+function saveDomains() {
+    localStorage.setItem('excludedDomains', JSON.stringify(excludedDomains));
+}
+
+// Load domains from localStorage
+function loadDomains() {
+    const saved = localStorage.getItem('excludedDomains');
+    if (saved) {
+        excludedDomains = JSON.parse(saved);
+        renderDomainTags();
+    }
+}
+
+// Save domains when changed
+const saveDomainsObserver = new MutationObserver(saveDomains);
+saveDomainsObserver.observe(domainsContainer, { childList: true });
+
+// Load saved domains on page load
+loadDomains();
+
+// Handle paste event to auto-analyze
+emailInput.addEventListener('paste', function() {
+    setTimeout(() => {
+        if (emailInput.value.trim().length > 0) {
+            analyzeBtn.click();
+        }
+    }, 100);
+});
+
+// Enable/disable buttons based on input
+emailInput.addEventListener('input', function() {
+    const hasContent = emailInput.value.trim().length > 0;
+    filterBtn.disabled = !hasContent;
+    clearInputBtn.disabled = !hasContent;
+    analyzeBtn.disabled = !hasContent;
+    
+    if (!hasContent) {
+        domainSuggestionContainer.style.display = 'none';
+    }
+});
+
+// Initial button state
+filterBtn.disabled = true;
+clearInputBtn.disabled = true;
+analyzeBtn.disabled = true;
+
+});
+</script>
+</body>
+</html>

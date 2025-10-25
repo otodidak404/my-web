@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Cleaner URL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            color: #00ff00;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            transition: background-color 0.3s;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            color: #00ff00;
+            text-align: center;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .tab-button {
+            background-color: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            max-width: 200px;
+            margin: 0 5px;
+            border-radius: 5px;
+        }
+
+        .tab-button.active {
+            background-color: #00ff00;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        .tab-button:hover {
+            background-color: #003300;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        textarea, #single-query-input {
+            background-color: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        #single-query-input {
+            height: 40px;
+        }
+
+        .button-container {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        button, .file-upload {
+            background-color: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        button:hover, .file-upload:hover {
+            background-color: #003300;
+            transform: scale(1.05);
+        }
+
+        .results-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .file-result {
+            margin-bottom: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: rgba(0, 255, 0, 0.05);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #00ff00;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #00ff00;
+            font-size: 1.1em;
+        }
+
+        .file-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        .stats {
+            color: #00ff00;
+            font-size: 0.9em;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #file-name {
+            margin: 10px 0;
+            color: #00ff00;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .copy-button {
+            background-color: transparent;
+            color: #00ff00;
+            border: none;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            transition: all 0.3s;
+        }
+
+        .copy-button:hover {
+            text-decoration: underline;
+            transform: scale(1.1);
+        }
+
+        .filter-container {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-option {
+            background-color: #000;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-option.active {
+            background-color: #00ff00;
+            color: #000;
+        }
+
+        /* New Styles for Enhanced Features */
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #00ff00;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .drop-zone {
+            border: 2px dashed #00ff00;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .drop-zone.dragover {
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .cache-indicator {
+            font-size: 0.8em;
+            color: #00ff00;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        /* High Contrast Mode */
+        .high-contrast {
+            background-color: #fff !important;
+            color: #000 !important;
+        }
+
+        .high-contrast button,
+        .high-contrast .file-upload,
+        .high-contrast .tab-button {
+            background-color: #000 !important;
+            color: #fff !important;
+            border-color: #000 !important;
+        }
+
+        /* Accessibility Focus Styles */
+        button:focus,
+        input:focus,
+        .tab-button:focus {
+            outline: 2px solid #00ff00;
+            outline-offset: 2px;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 600px) {
+            .button-container {
+                flex-direction: column;
+            }
+
+            button, 
+            .file-upload {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            .tab-button {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .drop-zone {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Query Cleaner URL</h1>
+
+    <div class="tab-container">
+        <button class="tab-button active" onclick="switchTab('bulk')" aria-label="Switch to Bulk Processing">Bulk Processing</button>
+        <button class="tab-button" onclick="switchTab('single')" aria-label="Switch to Single Query">Single Query</button>
+        <button class="tab-button" onclick="switchTab('history')" aria-label="Switch to History">History</button>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar hidden">
+        <div class="progress-fill"></div>
+    </div>
+
+    <!-- Bulk Processing Tab -->
+    <div id="bulk-tab" class="tab-content active">
+        <div class="drop-zone" id="drop-zone" aria-label="Drop zone for file upload">
+            Drag & Drop files here or click to upload
+        </div>
+        <div class="file-upload">
+            Upload ZIP or TXT
+            <input type="file" id="file-input" accept=".zip,.txt" onchange="handleFileSelect(event)" aria-label="File input">
+        </div>
+        <div id="file-name"></div>
+		<div id="validation-message" style="color: #ff0000; margin: 10px 0;"></div>
+        <div class="cache-indicator"></div>
+        <div class="filter-container">
+            <label class="filter-option active">
+                <input type="checkbox" checked onclick="toggleFilter(this.parentElement, 'all')" aria-label="Show all results"> All
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" onclick="toggleFilter(this.parentElement, 'query')" aria-label="Show query IDs"> Query ID
+            </label>
+            <label class="filter-option">
+                <input type="checkbox" onclick="toggleFilter(this.parentElement, 'user')" aria-label="Show user IDs"> User ID
+            </label>
+        </div>
+        <div class="button-container">
+            <button onclick="decodeBulkResults()" aria-label="Decode results">Decode</button>
+            <button onclick="clearAll()" aria-label="Clear all">Clear All</button>
+            <!-- <button onclick="exportResults()" aria-label="Export results">Export</button> -->
+        </div>
+        <div class="results-container" id="results-container"></div>
+    </div>
+
+    <!-- Single Query Tab -->
+    <div id="single-tab" class="tab-content">
+        <input type="text" 
+               id="single-query-input" 
+               placeholder="Paste your query here..." 
+               aria-label="Single query input">
+        <div class="button-container">
+            <button onclick="cleanSingleQuery()" aria-label="Clean query">Clean</button>
+            <button id="single-decode-btn" 
+                    onclick="decodeSingleQuery()" 
+                    class="hidden" 
+                    aria-label="Decode query">Decode</button>
+            <button onclick="clearSingle()" aria-label="Clear">Clear</button>
+        </div>
+        <div id="single-result" class="file-result hidden"></div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="history-tab" class="tab-content">
+        <div class="button-container">
+            <!-- <button onclick="exportHistory()" aria-label="Export history">Export History</button> -->
+            <button onclick="clearHistory()" aria-label="Clear history">Clear History</button>
+        </div>
+        <div class="history-container" id="history-container"></div>
+    </div>
+
+    <script>
+        // Global variables
+        const MAX_FILE_SIZE = 12 * 1024 * 1024; // 12MB
+        const fileCache = new Map();
+        let currentFilter = 'all';
+        const MAX_HISTORY = 10;
+        let queryHistory = JSON.parse(localStorage.getItem('queryHistory') || '[]');
+        let isProcessing = false;
+
+        // Rate Limiter
+        const rateLimiter = {
+            operations: new Map(),
+            limit: 10,
+            interval: 60000, // 1 minute
+
+            async checkLimit(operation) {
+                const now = Date.now();
+                const opCount = this.operations.get(operation) || [];
+                const recentOps = opCount.filter(time => now - time < this.interval);
+
+                if (recentOps.length >= this.limit) {
+                    throw new Error('Rate limit exceeded. Please try again later.');
+                }
+
+                recentOps.push(now);
+                this.operations.set(operation, recentOps);
+                return true;
+            }
+        };
+
+        // File Processing Functions
+        async function handleFileSelect(event) {
+			try {
+				const file = event.target.files[0];
+				const validationMessage = document.getElementById('validation-message');
+				const dropZone = document.getElementById('drop-zone');
+				const resultsContainer = document.getElementById('results-container');
+				
+				// Clear previous results first
+				resultsContainer.innerHTML = '';
+				
+				// Reset validation message
+				validationMessage.textContent = '';
+				
+				if (!file) {
+					validationMessage.textContent = 'Please select a file.';
+					return;
+				}
+
+				// Validate file type
+				const validExtensions = ['.zip', '.txt'];
+				const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+				if (!validExtensions.includes(fileExtension)) {
+					validationMessage.textContent = 'Invalid file type. Please upload a ZIP or TXT file.';
+					return;
+				}
+
+				// Validate file size
+				if (file.size > MAX_FILE_SIZE) {
+					validationMessage.textContent = 'File too large. Maximum size is 12MB.';
+					return;
+				}
+
+				await rateLimiter.checkLimit('fileUpload');
+				
+				showProgress();
+				document.getElementById('file-name').textContent = `Selected: ${file.name}`;
+
+				if (fileExtension === '.zip') {
+					await processZipFile(file);
+				} else {
+					await processTxtFile(file);
+				}
+
+			} catch (error) {
+				validationMessage.textContent = error.message;
+			} finally {
+				hideProgress();
+			}
+		}
+
+        async function processZipFile(file) {
+			try {
+				const zip = new JSZip();
+				const validationMessage = document.getElementById('validation-message');
+				const zipContents = await zip.loadAsync(file);
+				const resultsContainer = document.getElementById('results-container');
+				
+				let processedFiles = 0;
+				const totalFiles = Object.keys(zipContents.files).length;
+
+				if (totalFiles === 0) {
+					validationMessage.textContent = 'The ZIP file is empty.';
+					return;
+				}
+
+				// Create a Set to store unique file entries
+				const processedEntries = new Set();
+				let hasValidFiles = false;
+
+				for (const [filename, fileData] of Object.entries(zipContents.files)) {
+					// Skip if already processed or is a directory
+					if (processedEntries.has(filename) || fileData.dir) {
+						continue;
+					}
+
+					if (filename.toLowerCase().endsWith('.txt')) {
+						hasValidFiles = true;
+						processedEntries.add(filename);
+						
+						const content = await fileData.async('text');
+						const cleanedContent = await processContentWithCache(content);
+						if (cleanedContent.matches.length > 0) {
+							createResultElement(filename, cleanedContent);
+						}
+						updateProgress((++processedFiles / totalFiles) * 100);
+					}
+				}
+
+				if (!hasValidFiles) {
+					validationMessage.textContent = 'No valid TXT files found in the ZIP archive.';
+				} else if (processedFiles === 0) {
+					resultsContainer.innerHTML = '<div class="file-result">No valid queries found in any TXT files.</div>';
+				}
+			} catch (error) {
+				throw new Error('Error processing ZIP file: ' + error.message);
+			}
+		}
+
+        async function processTxtFile(file) {
+			try {
+				const validationMessage = document.getElementById('validation-message');
+				const content = await file.text();
+				
+				if (content.trim().length === 0) {
+					validationMessage.textContent = 'The text file is empty.';
+					return;
+				}
+
+				const cleanedContent = await processContentWithCache(content);
+				const resultsContainer = document.getElementById('results-container');
+
+				if (cleanedContent.matches.length > 0) {
+					createResultElement(file.name, cleanedContent);
+				} else {
+					resultsContainer.innerHTML = '<div class="file-result">No valid queries found in the file.</div>';
+					validationMessage.textContent = 'No valid queries found in the file.';
+				}
+			} catch (error) {
+				throw new Error('Error reading TXT file: ' + error.message);
+			}
+		}
+
+        async function processContentWithCache(content) {
+            const cacheKey = await calculateHash(content);
+            if (fileCache.has(cacheKey)) {
+                updateCacheIndicator(true);
+                return fileCache.get(cacheKey);
+            }
+
+            const result = await processContent(content);
+            fileCache.set(cacheKey, result);
+            updateCacheIndicator(false);
+            return result;
+        }
+
+        async function calculateHash(content) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(content);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function processContent(content) {
+            const regex = /(query_id%3D[^&]*|user%3D[^&]*)/g;
+            const matches = content.match(regex) || [];
+            const queryIds = matches.filter(m => m.startsWith('query_id%3D'));
+            const userIds = matches.filter(m => m.startsWith('user%3D'));
+
+            return {
+                matches,
+                queryIds,
+                userIds,
+                totalMatches: matches.length,
+                totalQueries: queryIds.length,
+                totalUsers: userIds.length
+            };
+        }
+
+        // UI Helper Functions
+        function showProgress() {
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.classList.remove('hidden');
+            updateProgress(0);
+        }
+
+        function hideProgress() {
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.classList.add('hidden');
+        }
+
+        function updateProgress(percentage) {
+            const progressFill = document.querySelector('.progress-fill');
+            progressFill.style.width = `${percentage}%`;
+        }
+
+        function updateCacheIndicator(fromCache) {
+            const indicator = document.querySelector('.cache-indicator');
+            indicator.textContent = fromCache ? 'Retrieved from cache' : 'Processed new content';
+            indicator.style.opacity = 1;
+            setTimeout(() => {
+                indicator.style.opacity = 0;
+            }, 2000);
+        }
+
+        // Drag and Drop Handlers
+        function initDragAndDrop() {
+			const dropZone = document.getElementById('drop-zone');
+			
+			if (!dropZone) return;
+
+			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+				dropZone.addEventListener(eventName, preventDefaults, false);
+			});
+
+			function preventDefaults(e) {
+				e.preventDefault();
+				e.stopPropagation();
+			}
+
+			dropZone.addEventListener('dragenter', () => {
+				dropZone.classList.add('dragover');
+			});
+
+			dropZone.addEventListener('dragover', () => {
+				dropZone.classList.add('dragover');
+			});
+
+			dropZone.addEventListener('dragleave', () => {
+				dropZone.classList.remove('dragover');
+			});
+
+			dropZone.addEventListener('drop', async (e) => {
+				dropZone.classList.remove('dragover');
+				const files = e.dataTransfer.files;
+				if (files.length > 0) {
+					const fileInput = document.getElementById('file-input');
+					fileInput.files = files;
+					const event = { target: { files: [files[0]] } };
+					await handleFileSelect(event);
+				}
+			});
+
+			// Make drop zone clickable
+			dropZone.addEventListener('click', () => {
+				document.getElementById('file-input').click();
+			});
+		}
+
+        <!-- // Export Functions -->
+        <!-- function exportResults() { -->
+            <!-- const resultsContainer = document.getElementById('results-container'); -->
+            <!-- const results = Array.from(resultsContainer.querySelectorAll('.file-result')).map(result => { -->
+                <!-- return { -->
+                    <!-- filename: result.querySelector('.file-name').textContent, -->
+                    <!-- content: result.querySelector('.file-content').textContent -->
+                <!-- }; -->
+            <!-- }); -->
+
+            <!-- const blob = new Blob([JSON.stringify(results, null, 2)], { type: 'application/json' }); -->
+            <!-- const url = URL.createObjectURL(blob); -->
+            <!-- const a = document.createElement('a'); -->
+            <!-- a.href = url; -->
+            <!-- a.download = 'query-results.json'; -->
+            <!-- document.body.appendChild(a); -->
+            <!-- a.click(); -->
+            <!-- document.body.removeChild(a); -->
+            <!-- URL.revokeObjectURL(url); -->
+        <!-- } -->
+
+        <!-- function exportHistory() { -->
+            <!-- const blob = new Blob([JSON.stringify(queryHistory, null, 2)], { type: 'application/json' }); -->
+            <!-- const url = URL.createObjectURL(blob); -->
+            <!-- const a = document.createElement('a'); -->
+            <!-- a.href = url; -->
+            <!-- a.download = 'query-history.json'; -->
+            <!-- document.body.appendChild(a); -->
+            <!-- a.click(); -->
+            <!-- document.body.removeChild(a); -->
+            <!-- URL.revokeObjectURL(url); -->
+        <!-- } -->
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+			// Initialize drag and drop functionality
+			initDragAndDrop();
+			
+			// Initialize file input
+			const fileInput = document.getElementById('file-input');
+			if (fileInput) {
+				fileInput.addEventListener('change', handleFileSelect);
+			}
+			
+			// Initialize query history from localStorage
+			queryHistory = JSON.parse(localStorage.getItem('queryHistory') || '[]');
+			
+			// Initialize tab buttons
+			const tabButtons = document.querySelectorAll('.tab-button');
+			tabButtons.forEach(button => {
+				button.addEventListener('click', () => {
+					const tabName = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+					switchTab(tabName);
+				});
+			});
+			
+			// Initialize single query input
+			const singleQueryInput = document.getElementById('single-query-input');
+			if (singleQueryInput) {
+				// Add event listener for Enter key
+				singleQueryInput.addEventListener('keypress', (e) => {
+					if (e.key === 'Enter') {
+						cleanSingleQuery();
+					}
+				});
+				
+				// Add event listener for input changes
+				singleQueryInput.addEventListener('input', () => {
+					const decodeButton = document.getElementById('single-decode-btn');
+					if (decodeButton) {
+						decodeButton.classList.add('hidden');
+					}
+				});
+			}
+			
+			// Initialize clear buttons
+			const clearAllButton = document.querySelector('button[onclick="clearAll()"]');
+			if (clearAllButton) {
+				clearAllButton.addEventListener('click', clearAll);
+			}
+			
+			const clearSingleButton = document.querySelector('button[onclick="clearSingle()"]');
+			if (clearSingleButton) {
+				clearSingleButton.addEventListener('click', clearSingle);
+			}
+			
+			const clearHistoryButton = document.querySelector('button[onclick="clearHistory()"]');
+			if (clearHistoryButton) {
+				clearHistoryButton.addEventListener('click', clearHistory);
+			}
+			
+			// Initialize filter options
+			const filterOptions = document.querySelectorAll('.filter-option input');
+			filterOptions.forEach(option => {
+				option.addEventListener('change', () => {
+					const filterType = option.parentElement.textContent.trim().toLowerCase();
+					toggleFilter(option.parentElement, filterType);
+				});
+			});
+			
+			// Add keyboard navigation
+			document.addEventListener('keydown', (e) => {
+				if (e.key === 'Tab') {
+					const focusableElements = document.querySelectorAll(
+						'button, input[type="text"], input[type="file"], [tabindex]:not([tabindex="-1"])'
+					);
+					const firstElement = focusableElements[0];
+					const lastElement = focusableElements[focusableElements.length - 1];
+
+					if (e.shiftKey && document.activeElement === firstElement) {
+						e.preventDefault();
+						lastElement.focus();
+					} else if (!e.shiftKey && document.activeElement === lastElement) {
+						e.preventDefault();
+						firstElement.focus();
+					}
+				}
+			});
+			
+			// Initialize progress bar
+			const progressBar = document.querySelector('.progress-bar');
+			if (progressBar) {
+				progressBar.classList.add('hidden');
+			}
+			
+			// Initialize cache indicator
+			const cacheIndicator = document.querySelector('.cache-indicator');
+			if (cacheIndicator) {
+				cacheIndicator.textContent = '';
+			}
+			
+			// Initialize validation message
+			const validationMessage = document.getElementById('validation-message');
+			if (validationMessage) {
+				validationMessage.textContent = '';
+			}
+			
+			// Initialize file name display
+			const fileName = document.getElementById('file-name');
+			if (fileName) {
+				fileName.textContent = '';
+			}
+			
+			// Initialize results container
+			const resultsContainer = document.getElementById('results-container');
+			if (resultsContainer) {
+				resultsContainer.innerHTML = '';
+			}
+			
+			// Initialize history display if we're on history tab
+			if (document.getElementById('history-tab').classList.contains('active')) {
+				displayHistory();
+			}
+			
+			// Log initialization complete
+			console.log('Application initialized successfully');
+		});
+
+        // Tab Switching Function
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            if (tabName === 'history') {
+                displayHistory();
+            }
+        }
+		
+		// Modified decode function for single result
+		function decodeSingleResult(resultElement) {
+			const content = resultElement.querySelector('.file-content');
+			const decodeButton = resultElement.querySelector('.decode-button');
+			
+			if (content) {
+				const currentLevel = parseInt(content.getAttribute('data-decode-level') || '0');
+				const newLevel = currentLevel + 1;
+				
+				if (newLevel <= 3) {
+					try {
+						const lines = content.textContent.split('\n');
+						const decodedLines = lines.map(line => performDecoding(line, newLevel));
+						content.textContent = decodedLines.join('\n');
+						content.setAttribute('data-decode-level', newLevel.toString());
+						
+						// Update button text
+						if (newLevel === 3) {
+							decodeButton.style.display = 'none';
+						} else {
+							decodeButton.textContent = `Decode (${newLevel}/3)`;
+						}
+					} catch (e) {
+						console.error('Decoding error:', e);
+						alert('Error decoding the content.');
+					}
+				}
+			}
+		}
+
+        // Results Processing Functions
+        function createResultElement(filename, results) {
+			const resultsContainer = document.getElementById('results-container');
+			
+			// Check if result for this file already exists
+			const existingResult = resultsContainer.querySelector(`[data-filename="${filename}"]`);
+			if (existingResult) {
+				// Update existing result instead of creating new one
+				updateExistingResult(existingResult, results);
+				return;
+			}
+
+			const fileResult = document.createElement('div');
+			fileResult.className = 'file-result';
+			// Add data attribute to track the filename
+			fileResult.setAttribute('data-filename', filename);
+
+			const header = document.createElement('div');
+			header.className = 'file-header';
+			
+			const fileNameSpan = document.createElement('span');
+			fileNameSpan.className = 'file-name';
+			fileNameSpan.textContent = filename;
+			
+			const buttonContainer = document.createElement('div');
+			buttonContainer.className = 'button-container';
+			
+			const decodeButton = document.createElement('button');
+			decodeButton.className = 'decode-button';
+			decodeButton.textContent = 'Decode (0/3)';
+			decodeButton.onclick = () => decodeSingleResult(fileResult);
+			
+			const copyButton = document.createElement('button');
+			copyButton.className = 'copy-button tooltip';
+			copyButton.textContent = 'Copy Results';
+			copyButton.onclick = () => copyResults(fileResult.querySelector('.file-content'));
+
+			buttonContainer.appendChild(decodeButton);
+			buttonContainer.appendChild(copyButton);
+			header.appendChild(fileNameSpan);
+			header.appendChild(buttonContainer);
+
+			const stats = document.createElement('div');
+			stats.className = 'stats';
+			stats.innerHTML = `
+				Total Matches: ${results.totalMatches} | 
+				Queries: ${results.totalQueries} | 
+				Users: ${results.totalUsers}
+			`;
+
+			const content = document.createElement('div');
+			content.className = 'file-content';
+			content.textContent = filterResults(results);
+			content.setAttribute('data-decode-level', '0');
+			// Store original results for filtering
+			content.setAttribute('data-original', JSON.stringify(results));
+
+			fileResult.appendChild(header);
+			fileResult.appendChild(stats);
+			fileResult.appendChild(content);
+			
+			// Add the new result at the beginning of the container
+			if (resultsContainer.firstChild) {
+				resultsContainer.insertBefore(fileResult, resultsContainer.firstChild);
+			} else {
+				resultsContainer.appendChild(fileResult);
+			}
+		}
+
+		// Helper function to update existing result
+		function updateExistingResult(element, results) {
+			const stats = element.querySelector('.stats');
+			if (stats) {
+				stats.innerHTML = `
+					Total Matches: ${results.totalMatches} | 
+					Queries: ${results.totalQueries} | 
+					Users: ${results.totalUsers}
+				`;
+			}
+
+			const content = element.querySelector('.file-content');
+			if (content) {
+				content.textContent = filterResults(results);
+				content.setAttribute('data-decode-level', '0');
+				content.setAttribute('data-original', JSON.stringify(results));
+			}
+
+			// Reset decode button
+			const decodeButton = element.querySelector('.decode-button');
+			if (decodeButton) {
+				decodeButton.textContent = 'Decode (0/3)';
+				decodeButton.style.display = 'inline-block';
+			}
+		}
+
+        // Filter Functions
+        function filterResults(results) {
+            switch (currentFilter) {
+                case 'query':
+                    return results.queryIds.join('\n');
+                case 'user':
+                    return results.userIds.join('\n');
+                default:
+                    return results.matches.join('\n');
+            }
+        }
+
+        function toggleFilter(element, filterType) {
+            document.querySelectorAll('.filter-option').forEach(opt => {
+                opt.classList.remove('active');
+                opt.querySelector('input').checked = false;
+            });
+            
+            element.classList.add('active');
+            element.querySelector('input').checked = true;
+            currentFilter = filterType;
+
+            // Reapply filter to all results
+            const allResults = document.querySelectorAll('.file-result');
+            allResults.forEach(result => {
+                const content = result.querySelector('.file-content');
+                if (content) {
+                    const originalContent = content.getAttribute('data-original');
+                    if (originalContent) {
+                        const results = JSON.parse(originalContent);
+                        content.textContent = filterResults(results);
+                        content.setAttribute('data-decoded', 'false');
+                    }
+                }
+            });
+        }
+
+        // Single Query Functions
+        function cleanSingleQuery() {
+			const inputText = document.getElementById('single-query-input').value.trim();
+			const resultDiv = document.getElementById('single-result');
+			const decodeButton = document.getElementById('single-decode-btn');
+
+			if (!inputText) {
+				alert('Please enter a query to clean.');
+				return;
+			}
+
+			const regex = /(query_id%3D[^&]*|user%3D[^&]*)/g;
+			const matches = inputText.match(regex);
+
+			if (matches) {
+				resultDiv.innerHTML = `
+					<div class="file-header">
+						<span class="file-name">Cleaned Query</span>
+						<button class="copy-button tooltip" onclick="copySingleResult()">
+							Copy Results
+						</button>
+					</div>
+					<div class="stats">
+						Found ${matches.length} match${matches.length > 1 ? 'es' : ''}
+					</div>
+					<div class="file-content" data-decode-level="0">${matches.join('\n')}</div>
+				`;
+				resultDiv.classList.remove('hidden');
+				
+				// Reset dan tampilkan decode button
+				decodeButton.textContent = 'Decode (0/3)';
+				decodeButton.style.display = 'inline-block';
+				decodeButton.classList.remove('hidden');
+
+				// Add to history
+				addToHistory(inputText, matches);
+			} else {
+				resultDiv.innerHTML = '<div class="file-content">No valid query found.</div>';
+				resultDiv.classList.remove('hidden');
+				decodeButton.classList.add('hidden');
+			}
+		}
+
+        function decodeSingleQuery() {
+			const resultDiv = document.getElementById('single-result');
+			const content = resultDiv.querySelector('.file-content');
+			const decodeButton = document.getElementById('single-decode-btn');
+			
+			if (content) {
+				const currentLevel = parseInt(content.getAttribute('data-decode-level') || '0');
+				const newLevel = currentLevel + 1;
+				
+				if (newLevel <= 3) {
+					try {
+						const lines = content.textContent.split('\n');
+						const decodedLines = lines.map(line => performDecoding(line, newLevel));
+						content.textContent = decodedLines.join('\n');
+						content.setAttribute('data-decode-level', newLevel.toString());
+						
+						// Update button text
+						if (newLevel === 3) {
+							decodeButton.style.display = 'none';
+						} else {
+							decodeButton.textContent = `Decode (${newLevel}/3)`;
+						}
+					} catch (e) {
+						console.error('Decoding error:', e);
+						alert('Error decoding the query.');
+					}
+				}
+			}
+		}
+		
+		// Function to handle multiple levels of decoding
+		function performDecoding(text, level) {
+			try {
+				switch (level) {
+					case 1: // First decode - URL decoding
+						return decodeURIComponent(text);
+					case 2: // Second decode - Additional URL decoding if needed
+						const decoded = decodeURIComponent(text);
+						return decoded.includes('%') ? decodeURIComponent(decoded) : decoded;
+					case 3: // Third decode - No prefix removal, just return text
+						return text;
+					default:
+						return text;
+				}
+			} catch (e) {
+				console.error('Decoding error:', e);
+				return text;
+			}
+		}
+
+        // History Functions
+        function addToHistory(query, results) {
+            const historyItem = {
+                timestamp: new Date().toISOString(),
+                query: query,
+                results: results,
+                cleaned: results.join('\n')
+            };
+
+            queryHistory.unshift(historyItem);
+            if (queryHistory.length > MAX_HISTORY) {
+                queryHistory.pop();
+            }
+
+            localStorage.setItem('queryHistory', JSON.stringify(queryHistory));
+            if (document.getElementById('history-tab').classList.contains('active')) {
+                displayHistory();
+            }
+        }
+
+        function displayHistory() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<h2>Recent Queries</h2>';
+
+            if (queryHistory.length === 0) {
+                container.innerHTML += '<div class="file-result">No history available</div>';
+                return;
+            }
+
+            queryHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                const date = new Date(item.timestamp).toLocaleString();
+                historyItem.innerHTML = `
+                    <div class="file-header">
+                        <span class="file-name">${date}</span>
+                        <button class="copy-button" onclick="copyHistoryItem(${index})">Copy</button>
+                    </div>
+                    <div class="file-content" data-decoded="false">${item.cleaned}</div>
+                `;
+                container.appendChild(historyItem);
+            });
+        }
+
+        function copyHistoryItem(index) {
+			const historyContent = document.querySelectorAll('.history-item')[index]?.querySelector('.file-content');
+			if (historyContent) {
+				copyResults(historyContent);
+			}
+		}
+
+        // Copy Functions
+        function copyResults(contentElement) {
+			if (!contentElement) return;
+			
+			const text = contentElement.textContent;
+			const decodeLevel = parseInt(contentElement.getAttribute('data-decode-level') || '0');
+			
+			try {
+				// Get text based on current decode level
+				let textToCopy = text;
+				
+				// If not yet decoded (level 0), perform first level decode
+				if (decodeLevel === 0) {
+					textToCopy = text.split('\n').map(line => decodeURIComponent(line)).join('\n');
+				} else {
+					// If already decoded, use the current text as is
+					textToCopy = text;
+				}
+				
+				navigator.clipboard.writeText(textToCopy)
+					.then(() => {
+						// Create and show temporary success message
+						const successMsg = document.createElement('div');
+						successMsg.textContent = 'Copied!';
+						successMsg.style.position = 'fixed';
+						successMsg.style.left = '50%';
+						successMsg.style.top = '20px';
+						successMsg.style.transform = 'translateX(-50%)';
+						successMsg.style.backgroundColor = '#00ff00';
+						successMsg.style.color = '#000';
+						successMsg.style.padding = '10px 20px';
+						successMsg.style.borderRadius = '5px';
+						successMsg.style.zIndex = '1000';
+						
+						document.body.appendChild(successMsg);
+						
+						// Remove the message after 2 seconds
+						setTimeout(() => {
+							successMsg.remove();
+						}, 2000);
+					})
+					.catch(err => alert('Failed to copy: ' + err));
+			} catch (e) {
+				alert('Error copying content: ' + e.message);
+			}
+		}
+
+        function copySingleResult() {
+			const content = document.getElementById('single-result').querySelector('.file-content');
+			if (content) {
+				copyResults(content);
+			}
+		}
+
+        // Clear Functions
+        function clearSingle() {
+			document.getElementById('single-query-input').value = '';
+			document.getElementById('single-result').classList.add('hidden');
+			const decodeButton = document.getElementById('single-decode-btn');
+			decodeButton.classList.add('hidden');
+			decodeButton.textContent = 'Decode (0/3)';
+		}
+
+        function clearAll() {
+			document.getElementById('results-container').innerHTML = '';
+			document.getElementById('file-name').textContent = '';
+			document.getElementById('file-input').value = '';
+			document.getElementById('validation-message').textContent = '';
+			document.getElementById('decode-bulk-btn').disabled = true;
+			clearSingle();
+			fileCache.clear();
+			updateCacheIndicator(false);
+		}
+
+        function clearHistory() {
+            queryHistory = [];
+            localStorage.removeItem('queryHistory');
+            displayHistory();
+        }
+
+        // Decode Function for Bulk Results
+        function decodeBulkResults() {
+			const fileResults = document.querySelectorAll('.file-result');
+			fileResults.forEach(result => {
+				const content = result.querySelector('.file-content');
+				const decodeButton = result.querySelector('.decode-button');
+				
+				if (content) {
+					const currentLevel = parseInt(content.getAttribute('data-decode-level') || '0');
+					const newLevel = currentLevel + 1;
+					
+					if (newLevel <= 3) {
+						const lines = content.textContent.split('\n');
+						const decodedLines = lines.map(line => performDecoding(line, newLevel));
+						content.textContent = decodedLines.join('\n');
+						content.setAttribute('data-decode-level', newLevel.toString());
+						
+						// Update button text based on level
+						if (decodeButton) {
+							if (newLevel === 3) {
+								decodeButton.style.display = 'none';
+							} else {
+								decodeButton.textContent = `Decode (${newLevel}/3)`;
+							}
+						}
+					}
+				}
+			});
+		}
+    </script>
+</body>
+</html>
