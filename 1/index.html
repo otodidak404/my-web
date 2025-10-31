@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Converter - Word, PDF, CSV</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-btn:hover {
+            background: #f0f4ff;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: #f0f4ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background: #e8edff;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 14px;
+            color: #666;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .format-selector {
+            margin-bottom: 30px;
+        }
+
+        .format-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .format-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .format-option {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .format-option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .format-option.selected {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .format-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .format-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .file-list {
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .remove-btn:hover {
+            background: #cc0000;
+        }
+
+        .convert-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .convert-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .mode-selector {
+                flex-direction: column;
+            }
+
+            .format-options {
+                flex-direction: column;
+            }
+
+            .format-option {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 HTML Converter</h1>
+            <p>Konversi HTML ke Word, PDF, atau CSV dengan mudah</p>
+        </div>
+
+        <div class="content">
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="single">📄 Single File</button>
+                <button class="mode-btn" data-mode="bulk">📚 Bulk Files</button>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Klik atau drag & drop file HTML</div>
+                <div class="upload-subtext" id="uploadSubtext">Pilih satu file HTML</div>
+                <input type="file" id="fileInput" accept=".html,.htm">
+            </div>
+
+            <!-- File List -->
+            <div class="file-list hidden" id="fileList"></div>
+
+            <!-- Format Selector -->
+            <div class="format-selector">
+                <label class="format-label">Pilih Format Output:</label>
+                <div class="format-options">
+                    <div class="format-option" data-format="docx">
+                        <div class="format-icon">📝</div>
+                        <div class="format-name">Word (DOCX)</div>
+                    </div>
+                    <div class="format-option" data-format="pdf">
+                        <div class="format-icon">📄</div>
+                        <div class="format-name">PDF</div>
+                    </div>
+                    <div class="format-option" data-format="csv">
+                        <div class="format-icon">📊</div>
+                        <div class="format-name">CSV</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Convert Button -->
+            <button class="convert-btn" id="convertBtn" disabled>Pilih Format & File untuk Konversi</button>
+
+            <!-- Progress Bar -->
+            <div class="progress" id="progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mode = 'single';
+        let selectedFormat = null;
+        let files = [];
+
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const formatOptions = document.querySelectorAll('.format-option');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const convertBtn = document.getElementById('convertBtn');
+        const uploadSubtext = document.getElementById('uploadSubtext');
+        const progress = document.getElementById('progress');
+        const progressFill = document.getElementById('progressFill');
+
+        // Mode Selection
+        modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                mode = btn.dataset.mode;
+                
+                if (mode === 'bulk') {
+                    fileInput.setAttribute('multiple', 'multiple');
+                    uploadSubtext.textContent = 'Pilih beberapa file HTML sekaligus';
+                } else {
+                    fileInput.removeAttribute('multiple');
+                    uploadSubtext.textContent = 'Pilih satu file HTML';
+                }
+                
+                files = [];
+                updateFileList();
+            });
+        });
+
+        // Format Selection
+        formatOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                formatOptions.forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                selectedFormat = option.dataset.format;
+                updateConvertButton();
+            });
+        });
+
+        // Upload Area Events
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(filesList) {
+            files = Array.from(filesList).filter(file => 
+                file.name.endsWith('.html') || file.name.endsWith('.htm')
+            );
+            
+            if (mode === 'single' && files.length > 0) {
+                files = [files[0]];
+            }
+            
+            updateFileList();
+            updateConvertButton();
+        }
+
+        function updateFileList() {
+            if (files.length === 0) {
+                fileList.classList.add('hidden');
+                return;
+            }
+
+            fileList.classList.remove('hidden');
+            fileList.innerHTML = files.map((file, index) => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${(file.size / 1024).toFixed(2)} KB</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeFile(${index})">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            updateFileList();
+            updateConvertButton();
+        }
+
+        function updateConvertButton() {
+            if (files.length > 0 && selectedFormat) {
+                convertBtn.disabled = false;
+                convertBtn.textContent = `Konversi ke ${selectedFormat.toUpperCase()}`;
+            } else {
+                convertBtn.disabled = true;
+                convertBtn.textContent = 'Pilih Format & File untuk Konversi';
+            }
+        }
+
+        // Convert Functions
+        convertBtn.addEventListener('click', async () => {
+            if (files.length === 0 || !selectedFormat) return;
+
+            progress.style.display = 'block';
+            convertBtn.disabled = true;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const percent = ((i + 1) / files.length * 100).toFixed(0);
+                progressFill.style.width = percent + '%';
+                progressFill.textContent = `${percent}% - Memproses ${file.name}`;
+
+                const content = await readFileContent(file);
+                const fileName = file.name.replace(/\.(html|htm)$/, '');
+
+                try {
+                    if (selectedFormat === 'docx') {
+                        await convertToWord(content, fileName);
+                    } else if (selectedFormat === 'pdf') {
+                        await convertToPDF(content, fileName);
+                    } else if (selectedFormat === 'csv') {
+                        await convertToCSV(content, fileName);
+                    }
+                } catch (error) {
+                    console.error('Error converting file:', error);
+                    alert(`Error saat konversi ${file.name}: ${error.message}`);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            progressFill.textContent = '100% - Selesai!';
+            setTimeout(() => {
+                progress.style.display = 'none';
+                progressFill.style.width = '0%';
+                convertBtn.disabled = false;
+            }, 2000);
+        });
+
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        }
+
+        function convertToWord(htmlContent, fileName) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const text = doc.body.textContent || doc.body.innerText || '';
+
+            const header = `MIME-Version: 1.0\nContent-Type: text/html; charset="utf-8"\n\n`;
+            const html = `<html><head><meta charset="utf-8"></head><body>${htmlContent}</body></html>`;
+            const blob = new Blob([header + html], { type: 'application/msword' });
+            downloadFile(blob, `${fileName}.doc`);
+        }
+
+        async function convertToPDF(htmlContent, fileName) {
+            const { jsPDF } = window.jspdf;
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = '800px';
+            tempDiv.style.padding = '20px';
+            tempDiv.innerHTML = htmlContent;
+            document.body.appendChild(tempDiv);
+
+            const canvas = await html2canvas(tempDiv, {
+                scale: 2,
+                useCORS: true
+            });
+
+            document.body.removeChild(tempDiv);
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pdfWidth - 20;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let heightLeft = imgHeight;
+            let position = 10;
+
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight + 10;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(`${fileName}.pdf`);
+        }
+
+        function convertToCSV(htmlContent, fileName) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const tables = doc.querySelectorAll('table');
+
+            if (tables.length === 0) {
+                const text = doc.body.textContent || doc.body.innerText || '';
+                const lines = text.split('\n').filter(line => line.trim());
+                const csv = lines.map(line => `"${line.trim()}"`).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                downloadFile(blob, `${fileName}.csv`);
+                return;
+            }
+
+            const table = tables[0];
+            const rows = Array.from(table.querySelectorAll('tr'));
+            const csvData = rows.map(row => {
+                const cells = Array.from(row.querySelectorAll('td, th'));
+                return cells.map(cell => {
+                    const text = cell.textContent.trim();
+                    return `"${text.replace(/"/g, '""')}"`;
+                }).join(',');
+            }).join('\n');
+
+            const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+            downloadFile(blob, `${fileName}.csv`);
+        }
+
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+  </html>
