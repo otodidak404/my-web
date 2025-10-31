@@ -302,6 +302,23 @@
                 <button class="mode-btn" data-mode="bulk">📚 Bulk Files</button>
             </div>
 
+            <!-- Bulk Options -->
+            <div class="bulk-options hidden" id="bulkOptions">
+                <label class="format-label">Mode Bulk:</label>
+                <div class="format-options">
+                    <div class="bulk-option selected" data-bulk="separate">
+                        <div class="format-icon">📑</div>
+                        <div class="format-name">File Terpisah</div>
+                        <div class="upload-subtext">Setiap file jadi satu dokumen</div>
+                    </div>
+                    <div class="bulk-option" data-bulk="merge">
+                        <div class="format-icon">📘</div>
+                        <div class="format-name">Gabung Jadi Satu</div>
+                        <div class="upload-subtext">Semua file dalam 1 dokumen</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Upload Area -->
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📁</div>
@@ -601,4 +618,4 @@
         }
     </script>
 </body>
-  </html>
+                </html>
